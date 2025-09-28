@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RAVINTOLA TANDOORI VILLA - Reservations Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --bg: #0d0d0d;
+            --fg: #fff;
+            --card-bg: #181818;
+            --accent: #1a73e8;
+            --border: #333;
+            --box-padding: 16px;
+            --pending: #ff9800;
+            --completed: #205c26;
+            --cancelled: #992424;
+        }
+        body { background: var(--bg); color: var(--fg); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; min-height: 100vh;}
+        .container { max-width: 1100px; margin: 36px auto 20px; padding: 0 12px;}
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap;}
+        .restaurant-title { font-size: 2.2rem; font-weight: 900; letter-spacing: 1.5px; color: var(--accent); text-align: center; flex: 1;}
+        .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-left: 16px; transition: background .2s, transform .2s; display: flex; align-items: center; gap: 8px;}
+        .add-btn:hover { background: #0d47a1; transform: scale(1.04);}
+        .summary-row, .filter-row { display: flex; gap: 18px; margin-bottom: 22px; flex-wrap: wrap;}
+        .summary-box { flex: 1; min-width: 120px; box-shadow: 0 2px 8px #0003; border-radius: 8px; padding: var(--box-padding); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: box-shadow .2s, transform .2s, border-bottom .2s; border: 2px solid transparent; position: relative; background: linear-gradient(90deg, #fbc02d 0%, #ff9800 100%); color: #fff;}
+        .summary-box.pending { background: linear-gradient(90deg, #fbc02d 0%, #ff9800 100%);}
+        .summary-box.completed { background: linear-gradient(90deg, #43ea7a 0%, #205c26 100%);}
+        .summary-box.cancelled { background: linear-gradient(90deg, #ff3d3d 0%, #992424 100%);}
+        .summary-box:hover { box-shadow: 0 4px 18px #0006; transform: scale(1.04);}
+        .summary-box.selected { border-bottom: 4px solid #fff;}
+        .summary-box .icon { font-size: 22px; margin-bottom: 4px;}
+        .summary-box .count { font-family: 'Montserrat', 'Arial', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 1px; margin-bottom: 2px;}
+        .summary-box .label { font-size: 15px; color: #fff; margin-top: 2px; font-family: 'Montserrat', 'Arial', sans-serif; letter-spacing: 0.5px;}
+        .filter-box { flex: 1; min-width: 120px; background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); box-shadow: 0 2px 8px #0003; border-radius: 8px; padding: var(--box-padding); display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 16px; color: #fff; justify-content: center; transition: box-shadow .2s, transform .2s, border-bottom .2s; border: 2px solid transparent; font-family: 'Montserrat', 'Arial', sans-serif;}
+        .filter-box .count { font-size: 22px; font-weight: 700; margin-bottom: 3px; font-family: 'Montserrat', 'Arial', sans-serif;}
+        .filter-box.selected { border-bottom: 4px solid #fff;}
+        .filter-box:hover { box-shadow: 0 4px 18px #0006; transform: scale(1.04);}
+        .date-selector-row { margin-bottom: 12px; display: flex; align-items: center; gap: 10px;}
+        .date-selector-group { display: flex; gap: 8px; align-items: center;}
+        .month-selector, .date-selector { background: var(--card-bg); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; font-size: 15px; outline: none;}
+        .table-container { background: var(--card-bg); padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px #0001; margin-top: 20px; overflow-x: auto; }
+        table { min-width: 650px; width: 100%; border-collapse: separate; border-spacing: 0; background: transparent; margin-top: 12px;}
+        thead tr { background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); border-radius: 10px;}
+        th { color: #fff; letter-spacing: 0.5px; padding: 11px 0px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border);}
+        th:first-child { border-top-left-radius: 10px; padding-left: 10px;}
+        th:last-child { border-top-right-radius: 10px;}
+        td { padding: 11px 0px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px;}
+        td:first-child { padding-left: 10px;}
+        td.status-cell { font-weight: 600; position: relative;}
+        td.note-cell { word-break: break-word; white-space: pre-line; }
+        .status-select-wrapper { position: relative; display: inline-block; width: 105px; height: 28px;}
+        .status-select { background: #222; color: #fff; border: none; border-radius: 7px; padding: 5px 25px 5px 10px; font-size: 13px; font-weight: 700; width: 105px; height: 28px; outline: none; appearance: none; cursor: pointer;}
+        .status-select.pending { background: var(--pending);}
+        .status-select.completed { background: var(--completed);}
+        .status-select.cancelled { background: var(--cancelled);}
+        .status-select option.pending { background: var(--pending); color: #fff;}
+        .status-select option.completed { background: var(--completed); color: #fff;}
+        .status-select option.cancelled { background: var(--cancelled); color: #fff;}
+        .status-select-wrapper .dropdown-icon { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 13px; color: #fff; opacity: 0.7;}
+        .view-btn { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 6px 16px; cursor: pointer; font-size: 13px; transition: background .2s;}
+        .view-btn:hover { background: #0d47a1;}
+        .delete-btn { background: none; border: none; color: #e53935; font-size: 17px; cursor: pointer; }
+        .delete-btn:hover { color: #b71c1c; }
+        .pagination-container { display: flex; justify-content: center; align-items: center; margin: 12px 0 0 0; gap: 8px;}
+        .pagination-btn { background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); color: #fff; border: none; border-radius: 5px; padding: 5px 12px; font-size: 13px; cursor: pointer; transition: background .2s;}
+        .pagination-btn.active { background: var(--accent); font-weight: bold;}
+        .pagination-btn:disabled { background: #444; opacity: 0.5; cursor: not-allowed;}
+        /* --- Chart Section --- */
+        .charts-row { display: flex; gap: 30px; flex-wrap: nowrap; margin-top: 45px; margin-bottom: 30px; justify-content: space-between;}
+        .chart-container { background: var(--card-bg); border-radius: 8px; padding: 18px; box-shadow: 0 2px 8px #0002; flex: 1; min-width: 340px; max-width: 530px; min-height: 320px; height: 320px; display: flex; flex-direction: column; margin-bottom: 18px;}
+        .chart-header { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); color: #fff; border-radius: 6px; padding: 15px 18px 10px 18px; margin-bottom: 12px;}
+        .chart-header-left { display: flex; flex-direction: column; align-items: flex-start; flex: 1;}
+        .chart-header-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px;}
+        .chart-header-total { font-size: 14px; font-weight: 700; opacity: 1; display:none;}
+        .chart-header-year { font-size: 18px; font-weight: 900; margin-left: 16px; opacity: 0.95;}
+        .chart-controls { display: flex; justify-content: center; align-items: center; margin-bottom: 12px; gap: 15px;}
+        .chart-dropdown { background: var(--card-bg); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 14px; outline: none;}
+        /* Chart Totals Row */
+        .chart-totals-row { display: flex; gap: 10px; margin: 7px 0 0 0; justify-content: space-between; flex-wrap: wrap;}
+        .chart-totals-box { flex: 1; background: #222; color: #fff; border-radius: 6px; padding: 7px 8px; text-align: center; min-width: 80px; font-size: 13px; margin: 0 3px; font-family: 'Montserrat', Arial, sans-serif; }
+        .chart-totals-label { font-size: 12px; color: #bbb; line-height: 1.2;}
+        .chart-totals-count { font-size: 15px; font-weight: 700; margin-top: 1px; letter-spacing: .5px;}
+        /* Modal styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; padding: 20px 10px;}
+        .modal-content { background: var(--card-bg); margin: 20px auto; padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; position: relative; box-shadow: 0 5px 30px rgba(0,0,0,0.5); border: 1px solid var(--border);}
+        .close-modal { position: absolute; top: 12px; right: 15px; font-size: 22px; cursor: pointer; color: var(--fg); background: none; border: none; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%;}
+        .close-modal:hover { background: rgba(255,255,255,0.1);}
+        .modal-header { padding-bottom: 12px; margin-bottom: 15px; border-bottom: 1px solid var(--border);}
+        .modal-title { font-size: 18px; color: #90caf9; margin: 0; font-weight: 600;}
+        .detail-row { display: flex; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); font-size: 13px;}
+        .detail-label { width: 120px; font-weight: 500; color: #90caf9; flex-shrink: 0;}
+        .detail-value { flex: 1; color: var(--fg); word-break: break-word;}
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; margin-top: 10px; border-top: 1px solid var(--border); flex-wrap: wrap;}
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap');
+        /* Responsive styles */
+        @media (max-width: 650px) {
+            .container { max-width: 100vw; padding: 0 2px;}
+            .summary-row, .filter-row, .date-selector-group { flex-direction: row; gap: 4px;}
+            .summary-box, .filter-box { min-width: 40px; padding: 2px; font-size: 9px;}
+            .summary-box .count, .filter-box .count { font-size: 9px;}
+            .summary-box .label, .filter-box { font-size: 9px;}
+            .table-container { padding: 1px;}
+            th, td { font-size: 8px; padding: 4px 0; min-width: 60px !important; max-width: 60px !important; width: 17% !important; box-sizing: border-box; word-break: break-word; text-align: left; vertical-align: middle;}
+            table th, table td { width: 17% !important; min-width: 60px !important; max-width: 60px !important; text-align: left;}
+            th:first-child, td:first-child { padding-left: 2px;}
+            th:first-child, th:last-child { border-radius: 0 !important;}
+            .status-select-wrapper { height: 18px !important; width: 74px !important;}
+            .status-select { font-size: 8px; width: 74px; height: 18px !important; padding: 1px 20px 1px 4px; min-width: 0; max-width: 100%;}
+            .status-select option { font-size: 8px;}
+            .view-btn { font-size: 8px; padding: 3px 8px; min-width: unset;}
+            .delete-btn { font-size: 10px;}
+            .charts-row { flex-direction: column; gap: 8px; margin-top: 8px; margin-bottom: 8px;}
+            .chart-container { min-width: 100% !important; max-width: 100vw !important; padding: 4px !important; margin: 0 !important; min-height: unset !important; height: auto !important; box-sizing: border-box;}
+            .chart-header-title { font-size: 8px;}
+            .chart-header-total { font-size: 7px; display:none;}
+            .chart-header-year { font-size: 8px; margin-left: 3px;}
+            .chart-controls label { font-size: 7px;}
+            .chart-dropdown { font-size: 7px; padding: 1px 2px;}
+            canvas { width: 100% !important; height: auto !important; max-width: 100vw !important; aspect-ratio: 2/1 !important; display: block;}
+            .chart-totals-row { gap: 2px; margin: 3px 0 0 0;}
+            .chart-totals-box { min-width: 50px; font-size: 7px; padding: 3px 2px;}
+            .chart-totals-label { font-size: 7px;}
+            .chart-totals-count { font-size: 8px;}
+            .top-bar { flex-direction: column; align-items: stretch;}
+            .restaurant-title { font-size: 1.3rem; margin-bottom: 8px;}
+            .add-btn { font-size: 0.7rem; padding: 8px 10px; margin-left: 0; margin-bottom: 6px;}
+        }
+        @media (max-width: 650px) and (orientation: landscape) {
+            .container { max-width: 1100px; padding: 0 12px;}
+            .table-container { padding: 12px;}
+            th, td { font-size: 14px; padding: 11px 0px;}
+            th:first-child, td:first-child { padding-left: 10px;}
+            .restaurant-title { font-size: 1.4rem;}
+            .add-btn { font-size: 0.8rem; padding: 9px 14px;}
+        }
+        @media (max-width: 900px) and (min-width: 651px) {
+            .container { max-width: 99vw;}
+            .summary-row, .filter-row { gap: 12px;}
+            .summary-box, .filter-box { min-width: 100px; padding: 11px;}
+            .restaurant-title { font-size: 1.7rem;}
+        }
+        @media (min-width: 651px) and (max-width: 1100px) {
+            .charts-row { flex-direction: column; gap: 20px;}
+            .chart-container { max-width: 100%;}
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="top-bar">
+        <div class="restaurant-title">RAVINTOLA TANDOORI VILLA</div>
+        <button class="add-btn" onclick="window.location.href='reservation.html'"><i class="fa fa-plus"></i> Add New Reservation</button>
+    </div>
+    <!-- Summary Boxes -->
+    <div class="summary-row">
+        <div class="summary-box pending selected" data-status="pending">
+            <span class="icon"><i class="fas fa-hourglass-half"></i></span>
+            <span class="count" id="pending-count">0</span>
+            <span class="label">Pending</span>
+        </div>
+        <div class="summary-box completed" data-status="completed">
+            <span class="icon"><i class="fas fa-check-circle"></i></span>
+            <span class="count" id="completed-count">0</span>
+            <span class="label">Completed</span>
+        </div>
+        <div class="summary-box cancelled" data-status="cancelled">
+            <span class="icon"><i class="fas fa-times-circle"></i></span>
+            <span class="count" id="cancelled-count">0</span>
+            <span class="label">Cancelled</span>
+        </div>
+    </div>
+    <!-- Filter Boxes -->
+    <div class="filter-row">
+        <div class="filter-box today" data-filter="today">
+            <span class="count" id="today-count">0</span>
+            Today
+        </div>
+        <div class="filter-box tomorrow" data-filter="tomorrow">
+            <span class="count" id="tomorrow-count">0</span>
+            Tomorrow
+        </div>
+        <div class="filter-box week" data-filter="week">
+            <span class="count" id="week-count">0</span>
+            This Week
+        </div>
+        <div class="filter-box nextweek" data-filter="nextweek">
+            <span class="count" id="nextweek-count">0</span>
+            Next Week
+        </div>
+        <div class="filter-box month" data-filter="month">
+            <span class="count" id="month-count">0</span>
+            This Month
+        </div>
+    </div>
+    <!-- Month/Date Selector -->
+    <div class="date-selector-row">
+        <label for="month-selector"><b>Select Month/Date:</b></label>
+        <div class="date-selector-group">
+            <select id="month-selector" class="month-selector">
+                <option value="">All Months</option>
+            </select>
+            <select id="date-selector" class="date-selector" style="display:none;">
+                <option value="">All Dates</option>
+            </select>
+        </div>
+    </div>
+    <!-- Table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Number of People</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Note</th>
+                    <th>Action</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="reservations-table"></tbody>
+        </table>
+        <div class="pagination-container" id="pagination-container"></div>
+    </div>
+    <!-- Charts Section -->
+    <div class="charts-row">
+        <div class="chart-container">
+            <div class="chart-header" id="weekChartHeader">
+                <div class="chart-header-left">
+                    <span class="chart-header-title" id="weekChartHeaderTitle">Reports: Next 7 Days</span>
+                    <span class="chart-header-total" id="weekChartHeaderTotal" style="display:none;"></span>
+                </div>
+                <span class="chart-header-year" id="weekChartHeaderYear"></span>
+            </div>
+            <div class="chart-controls">
+                <label for="weekChartDropdown">Show:</label>
+                <select id="weekChartDropdown" class="chart-dropdown">
+                    <option value="reservations">Total Reservations</option>
+                    <option value="people">Total People</option>
+                </select>
+            </div>
+            <div style="flex:1;display:flex;align-items:center;">
+                <canvas id="weekChart"></canvas>
+            </div>
+            <div class="chart-totals-row" id="weekChartTotalsRow"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-header" id="yearChartHeader">
+                <div class="chart-header-left">
+                    <span class="chart-header-title" id="yearChartHeaderTitle">Report: Jan - Dec</span>
+                    <span class="chart-header-total" id="yearChartHeaderTotal" style="display:none;"></span>
+                </div>
+                <span class="chart-header-year" id="yearChartHeaderYear"></span>
+            </div>
+            <div class="chart-controls">
+                <label for="yearChartDropdown">Show:</label>
+                <select id="yearChartDropdown" class="chart-dropdown">
+                    <option value="reservations">Total Reservations</option>
+                    <option value="people">Total People</option>
+                </select>
+            </div>
+            <div style="flex:1;display:flex;align-items:center;">
+                <canvas id="yearChart"></canvas>
+            </div>
+            <div class="chart-totals-row" id="yearChartTotalsRow"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Popup -->
+<div id="reservationModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal"><i class="fas fa-times"></i></button>
+        <div class="modal-header">
+            <h2 class="modal-title">Reservation Details</h2>
+            <div class="reservation-number" id="modal-reservation-number"></div>
+        </div>
+        <div class="modal-body">
+            <div class="detail-row">
+                <div class="detail-label">Customer:</div>
+                <div class="detail-value" id="modal-customer-name"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Phone:</div>
+                <div class="detail-value" id="modal-phone"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Note:</div>
+                <div class="detail-value" id="modal-note"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Date & Time:</div>
+                <div class="detail-value">
+                    <div id="modal-date"></div>
+                    <div id="modal-time"></div>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Number of People:</div>
+                <div class="detail-value" id="modal-number-people"></div>
+            </div>
+            <div class="detail-row" style="border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
+                <div class="detail-label">Booking Time:</div>
+                <div class="detail-value" id="modal-booking-time"></div>
+            </div>
+        </div>
+        <div class="modal-footer" id="modal-footer">
+            <button class="close-modal view-close-btn" style="background:var(--border);color:var(--fg);padding:6px 12px;border-radius:4px;cursor:pointer;font-size:13px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+ const firebaseConfig = {
+     apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
+  authDomain: "deliverylog-3fe71.firebaseapp.com",
+  databaseURL: "https://deliverylog-3fe71-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "deliverylog-3fe71",
+  storageBucket: "deliverylog-3fe71.firebasestorage.app",
+  messagingSenderId: "728033151860",
+  appId: "1:728033151860:web:fd2791ec61b8c71ecbfa21",
+  measurementId: "G-KNMP81LV6N"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const months = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+];
+const monthAbbrs = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+];
+
+function formatTime(timeStr) {
+    if (!timeStr) return 'N/A';
+    let timePart = timeStr.split('-')[0].trim();
+    if (timePart.match(/(AM|PM)$/i)) {
+        let [h, mAP] = timePart.split(':');
+        let [m, ap] = mAP.match(/(\d+)(AM|PM)/i).slice(1, 3);
+        return `${h.padStart(2, '0')}:${m} ${ap.toUpperCase()}`;
+    }
+    const [hours, minutes] = timePart.split(':');
+    if (!hours || !minutes) return timeStr;
+    let h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    return `${hour12.toString().padStart(2, '0')}:${minutes.padStart(2, '0')} ${ampm}`;
+}
+function formatDateDisplay(dateStr) {
+    if (!dateStr) return 'N/A';
+    let d = new Date(dateStr);
+    return `${d.getDate()} ${monthAbbrs[d.getMonth()]}`;
+}
+function isToday(dateStr) {
+    let d = new Date(dateStr);
+    let now = new Date();
+    return d.getDate() === now.getDate() &&
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear();
+}
+function isTomorrow(dateStr) {
+    let d = new Date(dateStr);
+    let now = new Date();
+    let tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate()+1);
+    return d.getDate() === tomorrow.getDate() &&
+        d.getMonth() === tomorrow.getMonth() &&
+        d.getFullYear() === tomorrow.getFullYear();
+}
+function isThisWeek(dateStr) {
+    let d = new Date(dateStr);
+    let now = new Date();
+    let first = new Date(now);
+    first.setDate(now.getDate()-now.getDay());
+    let last = new Date(first);
+    last.setDate(first.getDate()+6);
+    return d >= first && d <= last;
+}
+function isNextWeek(dateStr) {
+    let d = new Date(dateStr);
+    let now = new Date();
+    let first = new Date(now);
+    first.setDate(now.getDate()-now.getDay()+7);
+    let last = new Date(first);
+    last.setDate(first.getDate()+6);
+    return d >= first && d <= last;
+}
+function isThisMonth(dateStr) {
+    let d = new Date(dateStr);
+    let now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+const summaryBoxes = document.querySelectorAll('.summary-box');
+const filterBoxes = document.querySelectorAll('.filter-box');
+const monthSelector = document.getElementById('month-selector');
+const dateSelector = document.getElementById('date-selector');
+const tableBody = document.getElementById('reservations-table');
+const modal = document.getElementById('reservationModal');
+const closeModalBtn = document.querySelector('#reservationModal .close-modal');
+const viewCloseBtn = document.querySelector('#reservationModal .view-close-btn');
+const paginationContainer = document.getElementById('pagination-container');
+let currentPage = 1;
+const rowsPerPage = 15;
+
+// Chart elements
+const weekChartCtx = document.getElementById('weekChart').getContext('2d');
+const yearChartCtx = document.getElementById('yearChart').getContext('2d');
+let weekChart, yearChart;
+const weekChartDropdown = document.getElementById('weekChartDropdown');
+const yearChartDropdown = document.getElementById('yearChartDropdown');
+const weekChartTotalsRow = document.getElementById('weekChartTotalsRow');
+const yearChartTotalsRow = document.getElementById('yearChartTotalsRow');
+const weekChartHeaderYear = document.getElementById('weekChartHeaderYear');
+const yearChartHeaderYear = document.getElementById('yearChartHeaderYear');
+const weekChartHeaderTitle = document.getElementById('weekChartHeaderTitle');
+const yearChartHeaderTitle = document.getElementById('yearChartHeaderTitle');
+
+// Modal elements
+const modalReservationNumber = document.getElementById('modal-reservation-number');
+const modalCustomerName = document.getElementById('modal-customer-name');
+const modalPhone = document.getElementById('modal-phone');
+const modalNote = document.getElementById('modal-note');
+const modalDate = document.getElementById('modal-date');
+const modalTime = document.getElementById('modal-time');
+const modalNumberPeople = document.getElementById('modal-number-people');
+const modalBookingTime = document.getElementById('modal-booking-time');
+const modalFooter = document.getElementById('modal-footer');
+
+let reservations = [];
+let currentView = {type: 'status', value: 'pending'};
+let monthFilter = "";
+let dateFilter = "";
+
+function clearBoxSelection() {
+    summaryBoxes.forEach(b=>b.classList.remove('selected'));
+    filterBoxes.forEach(b=>b.classList.remove('selected'));
+}
+
+function getDaysInMonth(year, monthIdx) {
+    return new Date(year, monthIdx + 1, 0).getDate();
+}
+
+function renderMonthSelector() {
+    monthSelector.innerHTML = `<option value="">All Months</option>`;
+    for(let i=0;i<months.length;i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = months[i];
+        monthSelector.appendChild(opt);
+    }
+}
+function renderDateSelector() {
+    if(monthSelector.value === "") {
+        dateSelector.style.display = "none";
+        dateSelector.innerHTML = `<option value="">All Dates</option>`;
+        return;
+    }
+    dateSelector.style.display = "";
+    dateSelector.innerHTML = `<option value="">All Dates</option>`;
+    let selectedMonthIdx = parseInt(monthSelector.value);
+    let year = new Date().getFullYear();
+    let days = getDaysInMonth(year, selectedMonthIdx);
+    for(let d=1; d<=days; d++) {
+        let opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        dateSelector.appendChild(opt);
+    }
+}
+
+function updateCounts() {
+    let pending=0,completed=0,cancelled=0;
+    reservations.forEach(o=>{
+        if(o._tableStatus==='pending') pending++;
+        if(o._tableStatus==='completed') completed++;
+        if(o._tableStatus==='cancelled') cancelled++;
+    });
+    document.getElementById('pending-count').textContent = pending;
+    document.getElementById('completed-count').textContent = completed;
+    document.getElementById('cancelled-count').textContent = cancelled;
+
+    let today=0, tomorrow=0, week=0, nextweek=0, month=0;
+    reservations.forEach(o=>{
+        if(isToday(o.date)) today++;
+        if(isTomorrow(o.date)) tomorrow++;
+        if(isThisWeek(o.date)) week++;
+        if(isNextWeek(o.date)) nextweek++;
+        if(isThisMonth(o.date)) month++;
+    });
+    document.getElementById('today-count').textContent = today;
+    document.getElementById('tomorrow-count').textContent = tomorrow;
+    document.getElementById('week-count').textContent = week;
+    document.getElementById('nextweek-count').textContent = nextweek;
+    document.getElementById('month-count').textContent = month;
+}
+
+function parseTimeForSort(timeStr) {
+    if (!timeStr) return 0;
+    let timePart = timeStr.split('-')[0].trim();
+    let h = 0, m = 0;
+    let ampm = null;
+    if (timePart.match(/(AM|PM)$/i)) {
+        let [hm, ap] = timePart.split(/ ?(?=AM|PM)/i);
+        ampm = ap.toUpperCase();
+        let [hh, mm] = hm.split(':');
+        h = parseInt(hh) || 0;
+        m = parseInt(mm) || 0;
+        if (ampm === 'PM' && h !== 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+    } else {
+        let [hh, mm] = timePart.split(':');
+        h = parseInt(hh) || 0;
+        m = parseInt(mm) || 0;
+    }
+    return h * 60 + m;
+}
+
+function getFilteredReservations() {
+    let filtered;
+    if(monthFilter !== "") {
+        let monthIdx = parseInt(monthFilter);
+        let year = new Date().getFullYear();
+        filtered = reservations.filter(o=>{
+            if(!o.date) return false;
+            let d = new Date(o.date);
+            if(d.getMonth()!==monthIdx || d.getFullYear()!==year) return false;
+            if(dateFilter !== "") {
+                return d.getDate() === parseInt(dateFilter);
+            }
+            return true;
+        });
+    } else if(dateFilter !== "") {
+        let year = new Date().getFullYear();
+        filtered = reservations.filter(o=>{
+            if(!o.date) return false;
+            let d = new Date(o.date);
+            return d.getDate() === parseInt(dateFilter) && d.getFullYear()===year;
+        });
+    } else if(currentView.type === 'status') {
+        filtered = reservations.filter(o => o._tableStatus === currentView.value);
+    } else if(currentView.type === 'filter') {
+        let fn = {
+            today: isToday,
+            tomorrow: isTomorrow,
+            week: isThisWeek,
+            nextweek: isNextWeek,
+            month: isThisMonth
+        }[currentView.value];
+        filtered = reservations.filter(o=>fn(o.date));
+    } else {
+        filtered = reservations;
+    }
+    filtered.sort((a, b) => {
+        let da = a.date ? new Date(a.date) : new Date(0);
+        let db = b.date ? new Date(b.date) : new Date(0);
+        let cmp = da - db;
+        if (cmp !== 0) return cmp;
+        let ta = parseTimeForSort(a.time);
+        let tb = parseTimeForSort(b.time);
+        return ta - tb;
+    });
+    if(currentView.type === 'status' && (currentView.value === 'completed' || currentView.value === 'cancelled')) {
+        filtered.reverse();
+    }
+    return filtered;
+}
+
+function renderPagination(filtered) {
+    const totalRows = filtered.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    paginationContainer.innerHTML = "";
+    if (totalPages <= 1) return;
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "Previous";
+    prevBtn.className = "pagination-btn";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    };
+    paginationContainer.appendChild(prevBtn);
+    for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement("button");
+        pageBtn.textContent = i;
+        pageBtn.className = "pagination-btn" + (i === currentPage ? " active" : "");
+        pageBtn.onclick = () => {
+            currentPage = i;
+            renderTable();
+        };
+        paginationContainer.appendChild(pageBtn);
+    }
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next";
+    nextBtn.className = "pagination-btn";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    };
+    paginationContainer.appendChild(nextBtn);
+}
+
+function getStatusClass(value) {
+    if (value === "pending") return "pending";
+    if (value === "completed") return "completed";
+    if (value === "cancelled") return "cancelled";
+    return "";
+}
+
+function renderStatusSelect(reservation) {
+    let status = reservation._tableStatus;
+    let statusSelectClass = "status-select " + getStatusClass(status);
+    return `
+        <span class="status-select-wrapper">
+            <select class="${statusSelectClass}" data-id="${reservation.id}">
+                <option value="pending" class="pending" ${status==='pending'?'selected':''}>Pending</option>
+                <option value="completed" class="completed" ${status==='completed'?'selected':''}>Completed</option>
+                <option value="cancelled" class="cancelled" ${status==='cancelled'?'selected':''}>Cancelled</option>
+            </select>
+            <span class="dropdown-icon"><i class="fa fa-chevron-down"></i></span>
+        </span>
+    `;
+}
+
+function renderTable() {
+    const filtered = getFilteredReservations();
+    renderPagination(filtered);
+    tableBody.innerHTML = '';
+    if(!filtered.length) {
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">No reservations found.</td></tr>`;
+        return;
+    }
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    const endIdx = startIdx + rowsPerPage;
+    const pageReservations = filtered.slice(startIdx, endIdx);
+    pageReservations.forEach(reservation=>{
+        let statusSelect = renderStatusSelect(reservation);
+        let row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${reservation.user?.name || 'N/A'}</td>
+            <td>${formatDateDisplay(reservation.date)}</td>
+            <td>${reservation.numberOfPeople || reservation.people || 'N/A'}</td>
+            <td>${formatTime(reservation.time) || 'N/A'}</td>
+            <td class="status-cell">${statusSelect}</td>
+            <td class="note-cell">${reservation.note ? reservation.note : 'N/A'}</td>
+            <td>
+                <button class="view-btn" data-id="${reservation.id}"><i class="fas fa-eye"></i> View</button>
+            </td>
+            <td>
+                <button class="delete-btn" data-id="${reservation.id}" title="Delete"><i class="fa fa-trash"></i></button>
+            </td>
+        `;
+        row.querySelector('.view-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            let id = this.dataset.id;
+            let reservationObj = reservations.find(o=>o.id===id);
+            if(reservationObj) showReservationModal(reservationObj);
+        });
+        row.querySelector('.delete-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            let id = this.dataset.id;
+            if (confirm('Are you sure you want to delete this reservation?')) {
+                db.ref('reservations/'+id).remove().then(()=>{
+                    reservations = reservations.filter(r => r.id !== id);
+                    updateCounts();
+                    renderTable();
+                    renderCharts();
+                });
+            }
+        });
+        tableBody.appendChild(row);
+    });
+}
+
+function showReservationModal(reservation) {
+    modalReservationNumber.textContent = reservation.reservationNumber && String(reservation.reservationNumber).length === 8 ? `#${reservation.reservationNumber}` : 'N/A';
+    modalCustomerName.textContent = reservation.user?.name || 'N/A';
+    modalPhone.textContent = reservation.user?.phone || reservation.phone || 'N/A';
+    modalNote.textContent = reservation.note || 'N/A';
+    modalDate.textContent = reservation.date || 'N/A';
+    modalTime.textContent = formatTime(reservation.time) || 'N/A';
+    modalNumberPeople.textContent = reservation.numberOfPeople || reservation.people || 'N/A';
+    modalBookingTime.textContent = reservation.createdAt ? (new Date(reservation.createdAt)).toLocaleString() : 'N/A';
+    modal.style.display = 'block';
+}
+
+summaryBoxes.forEach(box=>{
+    box.addEventListener('click', ()=>{
+        summaryBoxes.forEach(b=>b.classList.remove('selected'));
+        box.classList.add('selected');
+        filterBoxes.forEach(b=>b.classList.remove('selected'));
+        monthSelector.value = "";
+        dateSelector.value = "";
+        monthFilter = "";
+        dateFilter = "";
+        renderDateSelector();
+        currentView = {type: 'status', value: box.dataset.status};
+        currentPage = 1;
+        renderTable();
+        renderCharts();
+    });
+});
+filterBoxes.forEach(box=>{
+    box.addEventListener('click', ()=>{
+        filterBoxes.forEach(b=>b.classList.remove('selected'));
+        box.classList.add('selected');
+        summaryBoxes.forEach(b=>b.classList.remove('selected'));
+        monthSelector.value = "";
+        dateSelector.value = "";
+        monthFilter = "";
+        dateFilter = "";
+        renderDateSelector();
+        currentView = {type: 'filter', value: box.dataset.filter};
+        currentPage = 1;
+        renderTable();
+        renderCharts();
+    });
+});
+monthSelector.addEventListener('change', ()=>{
+    monthFilter = monthSelector.value;
+    dateFilter = "";
+    dateSelector.value = "";
+    renderDateSelector();
+    clearBoxSelection();
+    currentPage = 1;
+    renderTable();
+    renderCharts();
+});
+dateSelector.addEventListener('change', ()=>{
+    dateFilter = dateSelector.value;
+    clearBoxSelection();
+    currentPage = 1;
+    renderTable();
+    renderCharts();
+});
+tableBody.addEventListener('change', function(e){
+    if(e.target.classList.contains('status-select')) {
+        let id = e.target.dataset.id;
+        let newStatus = e.target.value;
+        let reservation = reservations.find(o=>o.id===id);
+        if(reservation) {
+            reservation._tableStatus = newStatus;
+            db.ref('reservations/'+id).update({
+                status: newStatus === 'pending' ? 'accepted' : newStatus,
+                _tableStatus: newStatus
+            }, function(error){
+                if(!error) {
+                    updateCounts();
+                    renderTable();
+                    renderCharts();
+                }
+            });
+        }
+    }
+});
+closeModalBtn.addEventListener('click',()=>{modal.style.display='none';});
+if (viewCloseBtn) {
+    viewCloseBtn.addEventListener('click',()=>{modal.style.display='none';});
+}
+window.addEventListener('click',e=>{
+    if(e.target===modal) modal.style.display = 'none';
+});
+
+// Load reservations from Firebase
+function loadReservations() {
+    db.ref('reservations').on('value', snapshot => {
+        reservations = [];
+        snapshot.forEach(child => {
+            let reservation = child.val();
+            reservation.id = child.key;
+            if(reservation.status === 'accepted' || reservation.status === 'cancelled' || reservation.status === 'completed') {
+                reservation._tableStatus = reservation.status === 'accepted' ? 'pending' : reservation.status;
+                reservations.push(reservation);
+            }
+        });
+        renderMonthSelector();
+        renderDateSelector();
+        updateCounts();
+        currentPage = 1;
+        renderTable();
+        renderCharts();
+    });
+}
+
+// Charts
+function renderCharts() {
+    let today = new Date();
+    let weekYear = today.getFullYear();
+    let weekLabels = [];
+    let weekReservations = [];
+    let weekPeople = [];
+    let weekCompleted = [];
+    let weekCancelled = [];
+    let weekReservationsCount = [];
+    let weekCompletedCount = [];
+    let weekCancelledCount = [];
+    let weekTotalReservations = 0;
+    let weekTotalPeople = 0;
+    let weekTotalCompleted = 0;
+    let weekTotalCancelled = 0;
+
+    for(let i=1; i<=7; i++) {
+        let d = new Date(today); d.setDate(today.getDate() + i);
+        weekLabels.push(formatDateDisplay(d.toISOString()));
+        let reservationsCount = 0, completed = 0, cancelled = 0, people = 0, completedCount = 0, cancelledCount = 0;
+        reservations.forEach(reservation=>{
+            if(!reservation.date) return;
+            let od = new Date(reservation.date);
+            if(od.getFullYear() === d.getFullYear() && od.getMonth() === d.getMonth() && od.getDate() === d.getDate()) {
+                reservationsCount++;
+                let numPeople = parseInt(reservation.numberOfPeople || reservation.people || "0");
+                people += numPeople;
+                if(reservation._tableStatus === 'completed') {
+                    completed += numPeople;
+                    completedCount++;
+                }
+                if(reservation._tableStatus === 'cancelled') {
+                    cancelled += numPeople;
+                    cancelledCount++;
+                }
+            }
+        });
+        weekReservations.push(reservationsCount);
+        weekPeople.push(people);
+        weekCompleted.push(completed);
+        weekCancelled.push(cancelled);
+        weekReservationsCount.push(reservationsCount);
+        weekCompletedCount.push(completedCount);
+        weekCancelledCount.push(cancelledCount);
+        weekTotalReservations += reservationsCount;
+        weekTotalPeople += people;
+        weekTotalCompleted += weekChartDropdown.value === 'people' ? completed : completedCount;
+        weekTotalCancelled += weekChartDropdown.value === 'people' ? cancelled : cancelledCount;
+    }
+    weekChartHeaderYear.textContent = weekYear;
+
+    if(weekChart) weekChart.destroy();
+    let weekType = weekChartDropdown.value;
+    let weekDataSets = [];
+    if(weekType === 'people') {
+        weekDataSets = [
+            { label: 'Total People', data: weekPeople, borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.09)', fill: true, tension: .4, pointBackgroundColor: '#fff', borderWidth: 3 },
+            { label: 'Completed People', data: weekCompleted, borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.11)', fill: false, tension: .4, pointBackgroundColor: '#fff', borderWidth: 2 },
+            { label: 'Cancelled People', data: weekCancelled, borderColor: '#d32f2f', backgroundColor: 'rgba(211,47,47,0.13)', fill: false, tension: .4, pointBackgroundColor: '#fff', borderWidth: 2 }
+        ];
+    } else {
+        weekDataSets = [
+            { label: 'Total Reservations', data: weekReservations, borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.09)', fill: true, tension: .4, pointBackgroundColor: '#fff', borderWidth: 3 },
+            { label: 'Completed', data: weekCompletedCount, borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.08)', fill: false, tension: .4, pointBackgroundColor: '#fff', borderWidth: 2 },
+            { label: 'Cancelled', data: weekCancelledCount, borderColor: '#d32f2f', backgroundColor: 'rgba(211,47,47,0.09)', fill: false, tension: .4, pointBackgroundColor: '#fff', borderWidth: 2 }
+        ];
+    }
+    weekChart = new Chart(weekChartCtx, {
+        type: 'line',
+        data: { labels: weekLabels, datasets: weekDataSets },
+        options: {
+            plugins: {legend: {display: true}},
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600 },
+            scales: {
+                y: { beginAtZero: true, color:'#fff', grid:{color:'#444', drawBorder: false, drawOnChartArea: false} },
+                x: { color:'#fff', grid:{color:'#444', drawBorder: false, drawOnChartArea: false} }
+            }
+        }
+    });
+
+    let weekTotalsLabel = weekChartDropdown.value === 'people' ? 'Total People' : 'Total Reservations';
+    weekChartTotalsRow.innerHTML = `
+        <div class="chart-totals-box">
+            <div class="chart-totals-label">${weekTotalsLabel}</div>
+            <div class="chart-totals-count">${weekChartDropdown.value === 'people' ? weekTotalPeople : weekTotalReservations}</div>
+        </div>
+        <div class="chart-totals-box">
+            <div class="chart-totals-label">Total Completed</div>
+            <div class="chart-totals-count">${weekTotalCompleted}</div>
+        </div>
+        <div class="chart-totals-box">
+            <div class="chart-totals-label">Total Cancelled</div>
+            <div class="chart-totals-count">${weekTotalCancelled}</div>
+        </div>
+    `;
+
+    // Year chart
+    let year = today.getFullYear();
+    let yearLabels = monthAbbrs;
+    let yearReservations = [];
+    let yearPeople = [];
+    let yearCompleted = [];
+    let yearCancelled = [];
+    let yearReservationsCount = [];
+    let yearCompletedCount = [];
+    let yearCancelledCount = [];
+    let yearTotalReservations = 0;
+    let yearTotalPeople = 0;
+    let yearTotalCompleted = 0;
+    let yearTotalCancelled = 0;
+    for(let m=0; m<12; m++) {
+        let reservationsCount = 0, completed = 0, cancelled = 0, people = 0, completedCount = 0, cancelledCount = 0;
+        reservations.forEach(reservation=>{
+            if(!reservation.date) return;
+            let od = new Date(reservation.date);
+            if(od.getFullYear() === year && od.getMonth() === m) {
+                reservationsCount++;
+                let numPeople = parseInt(reservation.numberOfPeople || reservation.people || "0");
+                people += numPeople;
+                if(reservation._tableStatus === 'completed') {
+                    completed += numPeople;
+                    completedCount++;
+                }
+                if(reservation._tableStatus === 'cancelled') {
+                    cancelled += numPeople;
+                    cancelledCount++;
+                }
+            }
+        });
+        yearReservations.push(reservationsCount);
+        yearPeople.push(people);
+        yearCompleted.push(completed);
+        yearCancelled.push(cancelled);
+        yearReservationsCount.push(reservationsCount);
+        yearCompletedCount.push(completedCount);
+        yearCancelledCount.push(cancelledCount);
+        yearTotalReservations += reservationsCount;
+        yearTotalPeople += people;
+        yearTotalCompleted += yearChartDropdown.value === 'people' ? completed : completedCount;
+        yearTotalCancelled += yearChartDropdown.value === 'people' ? cancelled : cancelledCount;
+    }
+    yearChartHeaderYear.textContent = year;
+
+    if(yearChart) yearChart.destroy();
+    let yearType = yearChartDropdown.value;
+    let yearDataSets = [];
+    if(yearType === 'people') {
+        yearDataSets = [
+            { label: 'Total People', data: yearPeople, backgroundColor: 'rgba(26,115,232,0.18)', borderColor: '#1a73e8', borderWidth: 2, },
+            { label: 'Completed People', data: yearCompleted, backgroundColor: 'rgba(46,125,50,0.19)', borderColor: '#2e7d32', borderWidth: 2, },
+            { label: 'Cancelled People', data: yearCancelled, backgroundColor: 'rgba(211,47,47,0.18)', borderColor: '#d32f2f', borderWidth: 2, }
+        ];
+    } else {
+        yearDataSets = [
+            { label: 'Total Reservations', data: yearReservations, backgroundColor: 'rgba(26,115,232,0.18)', borderColor: '#1a73e8', borderWidth: 2, },
+            { label: 'Completed', data: yearCompletedCount, backgroundColor: 'rgba(46,125,50,0.19)', borderColor: '#2e7d32', borderWidth: 2, },
+            { label: 'Cancelled', data: yearCancelledCount, backgroundColor: 'rgba(211,47,47,0.18)', borderColor: '#d32f2f', borderWidth: 2, }
+        ];
+    }
+    yearChart = new Chart(yearChartCtx, {
+        type: 'bar',
+        data: { labels: yearLabels, datasets: yearDataSets },
+        options: {
+            plugins: {legend: {display: true}},
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600 },
+            scales: {
+                y: { beginAtZero: true, color:'#fff', grid:{color:'#444', drawBorder: false, drawOnChartArea: false} },
+                x: { color:'#fff', grid:{color:'#444', drawBorder: false, drawOnChartArea: false} }
+            }
+        }
+    });
+
+    let yearTotalsLabel = yearChartDropdown.value === 'people' ? 'Total People' : 'Total Reservations';
+    yearChartTotalsRow.innerHTML = `
+        <div class="chart-totals-box">
+            <div class="chart-totals-label">${yearTotalsLabel}</div>
+            <div class="chart-totals-count">${yearChartDropdown.value === 'people' ? yearTotalPeople : yearTotalReservations}</div>
+        </div>
+        <div class="chart-totals-box">
+            <div class="chart-totals-label">Total Completed</div>
+            <div class="chart-totals-count">${yearTotalCompleted}</div>
+        </div>
+        <div class="chart-totals-box">
+            <div class="chart-totals-label">Total Cancelled</div>
+            <div class="chart-totals-count">${yearTotalCancelled}</div>
+        </div>
+    `;
+}
+
+window.addEventListener('resize', () => {
+    renderCharts();
+});
+weekChartDropdown.addEventListener('change', () => renderCharts());
+yearChartDropdown.addEventListener('change', () => renderCharts());
+loadReservations();
+</script>
+</body>
+</html>
