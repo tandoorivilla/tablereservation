@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RAVINTOLA TANDOORI VILLA - Make a Reservation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #000;
+            --fg: #fff;
+            --card-bg: #000;
+            --accent: #1a73e8;
+            --border: #333;
+        }
+        body {
+            background: var(--bg); color: var(--fg);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border-radius: 10px; box-shadow: 0 2px 18px #0004;
+            padding: 32px 24px;
+        }
+        .view-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 8px;
+            padding: 10px 22px; font-size: 1.1rem; font-weight: 700; cursor: pointer;
+            margin: 0 auto 18px auto; transition: background .2s, transform .2s;
+            display: flex; align-items: center; gap: 8px; justify-content: center; width: 90vw; max-width: 440px;
+        }
+        .view-btn:hover { background: #0d47a1; transform: scale(1.05);}
+        h2 {
+            text-align: center; margin-bottom: 23px; font-size: 2rem; color: #fff; font-weight: 900;
+            letter-spacing: 1px;
+        }
+        form {
+            display: flex; flex-direction: column; gap: 22px;
+        }
+        .row-2col {
+            display: flex; gap: 20px;
+        }
+        .row-2col > .form-row {
+            flex: 1 1 0;
+        }
+        .row-3col {
+            display: flex; gap: 20px;
+        }
+        .row-3col > .form-row {
+            flex: 1 1 0;
+        }
+        .form-row {
+            display: flex; flex-direction: column; gap: 8px;
+            margin-bottom: 0;
+        }
+        label {
+            font-weight: 600; color: #90caf9;
+            font-size: 1.07rem; letter-spacing: .5px;
+        }
+        input, select, textarea {
+            background: #232323; color: #fff; border: 1px solid var(--border);
+            border-radius: 6px; padding: 10px 14px; font-size: 1rem; outline: none;
+            transition: border .2s;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+        .date-format-preview {
+            font-size: 0.96rem;
+            color: #43ea7a;
+            font-weight: 700;
+            margin-top: 4px;
+            min-height: 1.2em;
+            letter-spacing: 0.5px;
+        }
+        .note-row { margin-top: 0; }
+        .submit-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 8px;
+            padding: 13px 0; font-size: 1.18rem; font-weight: 700; cursor: pointer; margin-top: 8px;
+            transition: background .2s, transform .2s;
+        }
+        .submit-btn:hover { background: #0d47a1; transform: scale(1.03);}
+        .message {
+            margin-top: 14px; text-align: center; color: #43ea7a; font-weight: 700;
+        }
+        .error {
+            color: #ff3d3d; margin-top: 7px; font-size: .98rem; font-weight: 700;
+        }
+        /* Popup styles */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.82);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup {
+            background: #181818;
+            color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px #000a;
+            max-width: 96vw;
+            min-width: 320px;
+            padding: 34px 28px 30px 28px;
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .popup .fa-check-circle {
+            color: #43ea7a;
+            font-size: 3.7rem;
+            margin-bottom: 12px;
+        }
+        .popup-title {
+            font-size: 1.45rem; font-weight: 800; margin-bottom: 10px;
+        }
+        .popup-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 7px;
+            font-size: 1.1rem; font-weight: 700; padding: 11px 0; margin-top: 28px;
+            width: 170px; cursor: pointer; transition: background .2s, transform .2s;
+        }
+        .popup-btn:hover { background: #0d47a1; transform: scale(1.03);}
+        .popup-date {
+            font-size: 1.13rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 1100px) and (min-width: 651px) {
+            body { background: #000; }
+            .container { max-width: 99vw; padding: 0 14px; border-radius: 0; box-shadow: none; background: var(--card-bg);}
+            .view-btn { width: 90vw; max-width: 440px; font-size: 1.25rem; margin-bottom: 18px; }
+            h2 { font-size: 2.2rem; }
+            form { gap: 24px; }
+            .form-row { margin-bottom: 14px; }
+        }
+        @media (max-width: 650px) {
+            body { background: #000; }
+            .container { padding: 0 2px; border-radius: 0; background: var(--card-bg);}
+            .view-btn { width: 94vw; margin: 16px auto 12px auto; font-size: 1.1rem; }
+            h2 { font-size: 1.2rem; margin-bottom: 18px;}
+            form { gap: 16px;}
+            .form-row { gap: 7px; margin-bottom: 12px; }
+            .row-2col, .row-3col { flex-direction: column; gap: 12px; }
+            .popup { min-width: 0; padding: 23px 12px 22px 12px;}
+            .popup-title { font-size: 1.09rem;}
+            .popup-btn { width: 90vw; font-size: 1rem;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="view-btn" id="viewBtn" onclick="window.location.href='index.html'">
+            <i class="fa fa-list"></i> View Reservations
+        </button>
+        <h2>Make a Reservation</h2>
+        <form id="reservationForm" autocomplete="off">
+            <div class="row-2col">
+                <div class="form-row">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" maxlength="50" placeholder="Customer Name">
+                </div>
+                <div class="form-row">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" maxlength="20" placeholder="e.g. +358 401234567">
+                </div>
+            </div>
+            <div class="row-3col">
+                <div class="form-row">
+                    <label for="date">Date* <span style="font-size:0.93em;">(MM/DD/YYYY)</span></label>
+                    <input type="date" id="date" name="date" required>
+                    <span class="date-format-preview" id="datePreview"></span>
+                </div>
+                <div class="form-row">
+                    <label for="time">Time*</label>
+                    <input type="time" id="time" name="time" required>
+                </div>
+                <div class="form-row">
+                    <label for="numberOfPeople">Number of People*</label>
+                    <input type="number" id="numberOfPeople" name="numberOfPeople" required min="1" max="100" placeholder="e.g. 4">
+                </div>
+            </div>
+            <div class="form-row note-row">
+                <label for="note">Note</label>
+                <textarea id="note" name="note" maxlength="150" placeholder="Any special requests..."></textarea>
+            </div>
+            <button type="submit" class="submit-btn">Submit</button>
+            <div id="formMessage" class="message"></div>
+        </form>
+    </div>
+    <!-- Popup -->
+    <div id="confirmationPopup" class="popup-overlay">
+        <div class="popup">
+            <i class="fa fa-check-circle"></i>
+            <div class="popup-title">Reservation Confirmed!</div>
+            <div class="popup-date" id="popupDate"></div>
+            <button class="popup-btn" id="doneBtn">Done</button>
+        </div>
+    </div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+    // Firebase config
+   const firebaseConfig = {
+     apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
+  authDomain: "deliverylog-3fe71.firebaseapp.com",
+  databaseURL: "https://deliverylog-3fe71-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "deliverylog-3fe71",
+  storageBucket: "deliverylog-3fe71.firebasestorage.app",
+  messagingSenderId: "728033151860",
+  appId: "1:728033151860:web:fd2791ec61b8c71ecbfa21",
+  measurementId: "G-KNMP81LV6N"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Set minimum date to today
+    document.getElementById('date').min = new Date().toISOString().split('T')[0];
+
+    // Format date as DD/Mon/YYYY (e.g., 27/Sep/2025)
+    function formatDateDDMonYYYY(dateStr) {
+        if(!dateStr) return '';
+        const d = new Date(dateStr);
+        if(isNaN(d.getTime())) return dateStr;
+        const day = d.getDate().toString().padStart(2,'0');
+        const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const mon = monthNames[d.getMonth()];
+        return `${day}/${mon}/${d.getFullYear()}`;
+    }
+
+    // Show preview under date field
+    const dateInputEl = document.getElementById('date');
+    const datePreviewEl = document.getElementById('datePreview');
+    dateInputEl.addEventListener('input', function() {
+        if(this.value){
+            datePreviewEl.textContent = formatDateDDMonYYYY(this.value);
+        } else {
+            datePreviewEl.textContent = "";
+        }
+    });
+
+    function showPopup(dateStr) {
+        document.getElementById('confirmationPopup').style.display = "flex";
+        document.getElementById('popupDate').textContent = "Date: " + formatDateDDMonYYYY(dateStr);
+    }
+    function hidePopup() {
+        document.getElementById('confirmationPopup').style.display = "none";
+    }
+    document.getElementById('doneBtn').onclick = function() {
+        hidePopup();
+        document.getElementById('reservationForm').reset();
+        document.getElementById('formMessage').textContent = '';
+        datePreviewEl.textContent = "";
+    };
+
+    document.getElementById('reservationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const note = document.getElementById('note').value.trim();
+        const dateInput = document.getElementById('date').value;
+        const timeInput = document.getElementById('time').value;
+        const numberOfPeople = parseInt(document.getElementById('numberOfPeople').value, 10);
+        const formMsg = document.getElementById('formMessage');
+        formMsg.textContent = '';
+        formMsg.className = 'message';
+
+        // Validation
+        let error = '';
+        if (!dateInput) error = 'Date is required.';
+        else if (!timeInput) error = 'Time is required.';
+        else if (!numberOfPeople || numberOfPeople < 1 || numberOfPeople > 100) error = 'Number of people must be between 1 and 100.';
+        if (error) {
+            formMsg.textContent = error;
+            formMsg.className = 'message error';
+            return;
+        }
+
+        // Prepare reservation data
+        const newRef = db.ref('reservations').push();
+        const reservationId = newRef.key;
+        const reservationData = {
+            id: reservationId,
+            user: { name, phone },
+            date: dateInput, // store as YYYY-MM-DD
+            time: timeInput, // store as HH:mm
+            numberOfPeople,
+            note,
+            status: 'accepted',
+            _tableStatus: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        newRef.set(reservationData, function(err){
+            if(err) {
+                formMsg.textContent = 'Failed to submit reservation. Try again.';
+                formMsg.className = 'message error';
+            } else {
+                formMsg.textContent = '';
+                showPopup(dateInput);
+            }
+        });
+    });
+    </script>
+</body>
+</html>
