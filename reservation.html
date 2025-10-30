@@ -12,7 +12,12 @@
             --card-bg: #000;
             --accent: #1a73e8;
             --border: #333;
+            --input-bg: #232323;
+            --muted: #90caf9;
+            --success: #43ea7a;
+            --danger: #ff3d3d;
         }
+        html,body { height: 100%; }
         body {
             background: var(--bg); color: var(--fg);
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -57,16 +62,17 @@
             margin-bottom: 0;
         }
         label {
-            font-weight: 600; color: #90caf9;
+            font-weight: 600; color: var(--muted);
             font-size: 1.07rem; letter-spacing: .5px;
         }
         input, select, textarea {
-            background: #232323; color: #fff; border: 1px solid var(--border);
+            background: var(--input-bg); color: #fff; border: 1px solid var(--border);
             border-radius: 6px; padding: 10px 14px; font-size: 1rem; outline: none;
-            transition: border .2s;
+            transition: border .2s, box-shadow .12s;
         }
         input:focus, textarea:focus, select:focus {
             border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.08);
         }
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
@@ -74,7 +80,7 @@
         }
         .date-format-preview {
             font-size: 0.96rem;
-            color: #43ea7a;
+            color: var(--success);
             font-weight: 700;
             margin-top: 4px;
             min-height: 1.2em;
@@ -88,11 +94,37 @@
         }
         .submit-btn:hover { background: #0d47a1; transform: scale(1.03);}
         .message {
-            margin-top: 14px; text-align: center; color: #43ea7a; font-weight: 700;
+            margin-top: 14px; text-align: center; color: var(--success); font-weight: 700;
         }
         .error {
-            color: #ff3d3d; margin-top: 7px; font-size: .98rem; font-weight: 700;
+            color: var(--danger); margin-top: 7px; font-size: .98rem; font-weight: 700;
         }
+        /* Custom time picker (for tablet view) */
+        .time-picker {
+            display: none; /* hidden by default, visible on tablet sizes via media query */
+            align-items: center;
+            gap: 8px;
+        }
+        .tp-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background: var(--input-bg);
+            color: #fff;
+            border: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .tp-select.small { padding: 8px 10px; font-size: .98rem; }
+        .tp-label {
+            font-size: 0.95rem;
+            color: var(--muted);
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+
         /* Popup styles */
         .popup-overlay {
             display: none;
@@ -115,7 +147,7 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .popup .fa-check-circle {
-            color: #43ea7a;
+            color: var(--success);
             font-size: 3.7rem;
             margin-bottom: 12px;
         }
@@ -133,6 +165,8 @@
             font-weight: 700;
             margin-bottom: 8px;
         }
+
+        /* Responsive tweaks */
         @media (max-width: 1100px) and (min-width: 651px) {
             body { background: #000; }
             .container { max-width: 99vw; padding: 0 14px; border-radius: 0; box-shadow: none; background: var(--card-bg);}
@@ -140,6 +174,13 @@
             h2 { font-size: 2.2rem; }
             form { gap: 24px; }
             .form-row { margin-bottom: 14px; }
+
+            /* Tablet: show the custom AM/PM picker and hide native time input */
+            .time-picker { display: inline-flex; }
+            input[type="time"] { display: none; }
+
+            /* Slightly larger selects for tablet */
+            .tp-select { font-size: 1.02rem; padding: 11px 12px; }
         }
         @media (max-width: 650px) {
             body { background: #000; }
@@ -152,6 +193,9 @@
             .popup { min-width: 0; padding: 23px 12px 22px 12px;}
             .popup-title { font-size: 1.09rem;}
             .popup-btn { width: 90vw; font-size: 1rem;}
+            /* On small phones, keep native time input visible */
+            .time-picker { display: none; }
+            input[type="time"] { display: inline-block; }
         }
     </style>
 </head>
@@ -172,58 +216,108 @@
                     <input type="tel" id="phone" name="phone" maxlength="20" placeholder="e.g. +358 401234567">
                 </div>
             </div>
+
             <div class="row-3col">
                 <div class="form-row">
                     <label for="date">Date* <span style="font-size:0.93em;">(MM/DD/YYYY)</span></label>
                     <input type="date" id="date" name="date" required>
                     <span class="date-format-preview" id="datePreview"></span>
                 </div>
+
                 <div class="form-row">
                     <label for="time">Time*</label>
+                    <!-- Native time input (used on desktop & phone) -->
                     <input type="time" id="time" name="time" required>
+
+                    <!-- Custom time picker shown on tablet sizes (AM/PM) -->
+                    <div class="time-picker" id="customTimePicker" aria-hidden="true" style="margin-top: 6px;">
+                        <label class="tp-label" for="tpHour">Time</label>
+                        <select id="tpHour" class="tp-select" aria-label="Hour">
+                            <!-- options injected by JS -->
+                        </select>
+                        <select id="tpMinute" class="tp-select small" aria-label="Minute">
+                            <option value="00">00</option>
+                            <option value="15">15</option>
+                            <option value="30">30</option>
+                            <option value="45">45</option>
+                        </select>
+                        <select id="tpAmPm" class="tp-select small" aria-label="AM/PM">
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div class="form-row">
                     <label for="numberOfPeople">Number of People*</label>
                     <input type="number" id="numberOfPeople" name="numberOfPeople" required min="1" max="100" placeholder="e.g. 4">
                 </div>
             </div>
+
             <div class="form-row note-row">
                 <label for="note">Note</label>
                 <textarea id="note" name="note" maxlength="150" placeholder="Any special requests..."></textarea>
             </div>
+
             <button type="submit" class="submit-btn">Submit</button>
             <div id="formMessage" class="message"></div>
         </form>
     </div>
+
     <!-- Popup -->
-    <div id="confirmationPopup" class="popup-overlay">
+    <div id="confirmationPopup" class="popup-overlay" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
         <div class="popup">
-            <i class="fa fa-check-circle"></i>
-            <div class="popup-title">Reservation Confirmed!</div>
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            <div class="popup-title" id="popupTitle">Reservation Confirmed!</div>
             <div class="popup-date" id="popupDate"></div>
             <button class="popup-btn" id="doneBtn">Done</button>
         </div>
     </div>
-    <!-- Firebase -->
+
+    <!-- Firebase (compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <script>
-    // Firebase config
-   const firebaseConfig = {
-     apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
-  authDomain: "deliverylog-3fe71.firebaseapp.com",
-  databaseURL: "https://deliverylog-3fe71-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "deliverylog-3fe71",
-  storageBucket: "deliverylog-3fe71.firebasestorage.app",
-  messagingSenderId: "728033151860",
-  appId: "1:728033151860:web:fd2791ec61b8c71ecbfa21",
-  measurementId: "G-KNMP81LV6N"
-};
+    // Firebase config (provided in original)
+    const firebaseConfig = {
+        apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
+        authDomain: "deliverylog-3fe71.firebaseapp.com",
+        databaseURL: "https://deliverylog-3fe71-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "deliverylog-3fe71",
+        storageBucket: "deliverylog-3fe71.firebasestorage.app",
+        messagingSenderId: "728033151860",
+        appId: "1:728033151860:web:fd2791ec61b8c71ecbfa21",
+        measurementId: "G-KNMP81LV6N"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Elements
+    const dateInputEl = document.getElementById('date');
+    const datePreviewEl = document.getElementById('datePreview');
+    const timeNativeEl = document.getElementById('time');
+    const customPickerEl = document.getElementById('customTimePicker');
+    const tpHourEl = document.getElementById('tpHour');
+    const tpMinuteEl = document.getElementById('tpMinute');
+    const tpAmPmEl = document.getElementById('tpAmPm');
+    const formEl = document.getElementById('reservationForm');
+    const formMsg = document.getElementById('formMessage');
+
     // Set minimum date to today
-    document.getElementById('date').min = new Date().toISOString().split('T')[0];
+    dateInputEl.min = new Date().toISOString().split('T')[0];
+
+    // Populate hour select (1..12)
+    function populateHours() {
+        tpHourEl.innerHTML = '';
+        for (let h = 1; h <= 12; h++) {
+            const opt = document.createElement('option');
+            opt.value = String(h).padStart(2, '0');
+            opt.textContent = String(h);
+            tpHourEl.appendChild(opt);
+        }
+    }
+    populateHours();
 
     // Format date as DD/Mon/YYYY (e.g., 27/Sep/2025)
     function formatDateDDMonYYYY(dateStr) {
@@ -237,8 +331,6 @@
     }
 
     // Show preview under date field
-    const dateInputEl = document.getElementById('date');
-    const datePreviewEl = document.getElementById('datePreview');
     dateInputEl.addEventListener('input', function() {
         if(this.value){
             datePreviewEl.textContent = formatDateDDMonYYYY(this.value);
@@ -247,36 +339,160 @@
         }
     });
 
-    function showPopup(dateStr) {
+    // Helpers to detect if we're on "tablet" size (where custom picker is visible)
+    function isTabletWidth() {
+        return window.matchMedia("(min-width: 651px) and (max-width: 1100px)").matches;
+    }
+
+    // Parse native time (HH:mm) into custom picker (12-hour with AM/PM)
+    function syncCustomFromNative() {
+        const val = timeNativeEl.value; // "HH:MM"
+        if (!val) return;
+        const parts = val.split(':');
+        if (parts.length < 2) return;
+        let hour24 = parseInt(parts[0], 10);
+        const minute = parts[1].padStart(2,'0').slice(0,2);
+        let ampm = 'AM';
+        let hour12 = hour24;
+        if (hour24 === 0) {
+            hour12 = 12;
+            ampm = 'AM';
+        } else if (hour24 === 12) {
+            hour12 = 12;
+            ampm = 'PM';
+        } else if (hour24 > 12) {
+            hour12 = hour24 - 12;
+            ampm = 'PM';
+        } else {
+            ampm = 'AM';
+        }
+        // Set selects
+        tpHourEl.value = String(hour12).padStart(2,'0');
+        // If minute options are 00/15/30/45, find closest option (round down)
+        const minuteVal = (() => {
+            const m = parseInt(minute,10);
+            if (isNaN(m)) return '00';
+            if (m >= 45) return '45';
+            if (m >= 30) return '30';
+            if (m >= 15) return '15';
+            return '00';
+        })();
+        tpMinuteEl.value = minuteVal;
+        tpAmPmEl.value = ampm;
+    }
+
+    // Convert custom picker selects to native HH:mm (24-hour)
+    function customToNativeTime() {
+        const hStr = tpHourEl.value;
+        const mStr = tpMinuteEl.value;
+        const ampm = tpAmPmEl.value;
+        let h = parseInt(hStr, 10);
+        if (isNaN(h)) h = 12;
+        if (ampm === 'AM') {
+            if (h === 12) h = 0;
+        } else { // PM
+            if (h !== 12) h = h + 12;
+        }
+        const hh = String(h).padStart(2,'0');
+        const mm = String(mStr).padStart(2,'0');
+        return `${hh}:${mm}`;
+    }
+
+    // Whenever custom picker changes, sync native time input (so storage always uses HH:mm)
+    function onCustomChange() {
+        const nativeVal = customToNativeTime();
+        timeNativeEl.value = nativeVal;
+    }
+
+    // Initialize behavior on load and resize
+    function initTimePickerVisibility() {
+        if (isTabletWidth()) {
+            // show custom picker (CSS handles display). Make sure custom reflects native
+            customPickerEl.setAttribute('aria-hidden', 'false');
+            syncCustomFromNative();
+        } else {
+            customPickerEl.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    // Attach listeners
+    window.addEventListener('resize', initTimePickerVisibility);
+    window.addEventListener('orientationchange', initTimePickerVisibility);
+    timeNativeEl.addEventListener('input', function() {
+        // When native time changes (user on desktop / phone), update custom if visible
+        if (isTabletWidth()) syncCustomFromNative();
+    });
+
+    tpHourEl.addEventListener('change', onCustomChange);
+    tpMinuteEl.addEventListener('change', onCustomChange);
+    tpAmPmEl.addEventListener('change', onCustomChange);
+
+    // Initialize on first load
+    initTimePickerVisibility();
+
+    // Popup functions
+    function showPopup(dateStr, timeStr) {
         document.getElementById('confirmationPopup').style.display = "flex";
-        document.getElementById('popupDate').textContent = "Date: " + formatDateDDMonYYYY(dateStr);
+        const dateFormatted = formatDateDDMonYYYY(dateStr);
+        const humanTime = timeStr ? formatHumanTime(timeStr) : '';
+        document.getElementById('popupDate').textContent = `${dateFormatted}${humanTime ? ' • ' + humanTime : ''}`;
     }
     function hidePopup() {
         document.getElementById('confirmationPopup').style.display = "none";
     }
     document.getElementById('doneBtn').onclick = function() {
         hidePopup();
-        document.getElementById('reservationForm').reset();
-        document.getElementById('formMessage').textContent = '';
+        formEl.reset();
         datePreviewEl.textContent = "";
+        // Reset custom to defaults
+        tpHourEl.value = '12';
+        tpMinuteEl.value = '00';
+        tpAmPmEl.value = 'PM';
     };
 
-    document.getElementById('reservationForm').addEventListener('submit', function(e) {
+    // Convert HH:mm (24) to human readable 12-hour with AM/PM for popup
+    function formatHumanTime(hhmm) {
+        if(!hhmm) return '';
+        const p = hhmm.split(':');
+        if (p.length < 2) return hhmm;
+        let h = parseInt(p[0],10);
+        const m = p[1];
+        let ampm = 'AM';
+        if (h === 0) { h = 12; ampm = 'AM'; }
+        else if (h === 12) { ampm = 'PM'; }
+        else if (h > 12) { h = h - 12; ampm = 'PM'; }
+        else { ampm = 'AM'; }
+        return `${h}:${m} ${ampm}`;
+    }
+
+    // Form submission
+    formEl.addEventListener('submit', function(e) {
         e.preventDefault();
+        formMsg.textContent = '';
+        formMsg.className = 'message';
+
         const name = document.getElementById('name').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const note = document.getElementById('note').value.trim();
-        const dateInput = document.getElementById('date').value;
-        const timeInput = document.getElementById('time').value;
+        const dateInput = dateInputEl.value;
+
+        // Determine time source: if tablet (custom visible) use custom, else use native
+        let timeValue = '';
+        if (isTabletWidth()) {
+            // construct from custom selects
+            timeValue = customToNativeTime();
+            // ensure native input also updated (keeps parity)
+            timeNativeEl.value = timeValue;
+        } else {
+            timeValue = timeNativeEl.value;
+        }
+
         const numberOfPeople = parseInt(document.getElementById('numberOfPeople').value, 10);
-        const formMsg = document.getElementById('formMessage');
-        formMsg.textContent = '';
-        formMsg.className = 'message';
 
         // Validation
         let error = '';
         if (!dateInput) error = 'Date is required.';
-        else if (!timeInput) error = 'Time is required.';
+        else if (!timeValue) error = 'Time is required.';
         else if (!numberOfPeople || numberOfPeople < 1 || numberOfPeople > 100) error = 'Number of people must be between 1 and 100.';
         if (error) {
             formMsg.textContent = error;
@@ -291,23 +507,47 @@
             id: reservationId,
             user: { name, phone },
             date: dateInput, // store as YYYY-MM-DD
-            time: timeInput, // store as HH:mm
+            time: timeValue, // store as HH:mm (24-hour)
             numberOfPeople,
             note,
             status: 'accepted',
             _tableStatus: 'pending',
             createdAt: new Date().toISOString()
         };
+
         newRef.set(reservationData, function(err){
             if(err) {
                 formMsg.textContent = 'Failed to submit reservation. Try again.';
                 formMsg.className = 'message error';
             } else {
                 formMsg.textContent = '';
-                showPopup(dateInput);
+                showPopup(dateInput, timeValue);
             }
         });
     });
+
+    // Small enhancement: when page first loads, set default custom picker to current nearest quarter
+    (function setDefaultTimeForPicker() {
+        const now = new Date();
+        let min = now.getMinutes();
+        // round to nearest 15 (down)
+        if (min >= 45) min = 45;
+        else if (min >= 30) min = 30;
+        else if (min >= 15) min = 15;
+        else min = 0;
+        const hh = now.getHours();
+        let displayHour = hh;
+        let ampm = 'AM';
+        if (hh === 0) { displayHour = 12; ampm = 'AM'; }
+        else if (hh === 12) { displayHour = 12; ampm = 'PM'; }
+        else if (hh > 12) { displayHour = hh - 12; ampm = 'PM'; }
+        else { ampm = 'AM'; }
+        tpHourEl.value = String(displayHour).padStart(2,'0');
+        tpMinuteEl.value = String(min).padStart(2,'0');
+        tpAmPmEl.value = ampm;
+        // sync native
+        timeNativeEl.value = customToNativeTime();
+    })();
     </script>
 </body>
 </html>
