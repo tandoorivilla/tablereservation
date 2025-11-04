@@ -17,6 +17,10 @@
             --pending: #ff9800;
             --completed: #205c26;
             --cancelled: #992424;
+            --edit-btn: #ffeb3b;
+            --edit-btn-hover: #fbc02d;
+            --table-alt1: #000;
+            --table-alt2: #181818;
         }
         body { background: var(--bg); color: var(--fg); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; min-height: 100vh;}
         .container { max-width: 1100px; margin: 36px auto 20px; padding: 0 12px;}
@@ -51,6 +55,11 @@
         td:first-child { padding-left: 10px;}
         td.status-cell { font-weight: 600; position: relative;}
         td.note-cell { word-break: break-word; white-space: pre-line; }
+
+        /* Table Alternating Row Colors (black and default card) */
+        tbody tr:nth-child(even) { background: var(--table-alt1);}
+        tbody tr:nth-child(odd) { background: var(--table-alt2); }
+
         .status-select-wrapper { position: relative; display: inline-block; width: 105px; height: 28px;}
         .status-select { background: #222; color: #fff; border: none; border-radius: 7px; padding: 5px 25px 5px 10px; font-size: 13px; font-weight: 700; width: 105px; height: 28px; outline: none; appearance: none; cursor: pointer;}
         .status-select.pending { background: var(--pending);}
@@ -62,13 +71,14 @@
         .status-select-wrapper .dropdown-icon { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 13px; color: #fff; opacity: 0.7;}
         .view-btn { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 6px 16px; cursor: pointer; font-size: 13px; transition: background .2s;}
         .view-btn:hover { background: #0d47a1;}
+        .edit-btn { background: var(--edit-btn); border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; color: #333; font-size: 15px; margin-right: 6px; transition: background 0.2s;}
+        .edit-btn:hover { background: var(--edit-btn-hover); color: #000;}
         .delete-btn { background: none; border: none; color: #e53935; font-size: 17px; cursor: pointer; }
         .delete-btn:hover { color: #b71c1c; }
         .pagination-container { display: flex; justify-content: center; align-items: center; margin: 12px 0 0 0; gap: 8px;}
         .pagination-btn { background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); color: #fff; border: none; border-radius: 5px; padding: 5px 12px; font-size: 13px; cursor: pointer; transition: background .2s;}
         .pagination-btn.active { background: var(--accent); font-weight: bold;}
         .pagination-btn:disabled { background: #444; opacity: 0.5; cursor: not-allowed;}
-        /* --- Chart Section --- */
         .charts-row { display: flex; gap: 30px; flex-wrap: nowrap; margin-top: 45px; margin-bottom: 30px; justify-content: space-between;}
         .chart-container { background: var(--card-bg); border-radius: 8px; padding: 18px; box-shadow: 0 2px 8px #0002; flex: 1; min-width: 340px; max-width: 530px; min-height: 320px; height: 320px; display: flex; flex-direction: column; margin-bottom: 18px;}
         .chart-header { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); color: #fff; border-radius: 6px; padding: 15px 18px 10px 18px; margin-bottom: 12px;}
@@ -78,12 +88,10 @@
         .chart-header-year { font-size: 18px; font-weight: 900; margin-left: 16px; opacity: 0.95;}
         .chart-controls { display: flex; justify-content: center; align-items: center; margin-bottom: 12px; gap: 15px;}
         .chart-dropdown { background: var(--card-bg); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 14px; outline: none;}
-        /* Chart Totals Row */
         .chart-totals-row { display: flex; gap: 10px; margin: 7px 0 0 0; justify-content: space-between; flex-wrap: wrap;}
         .chart-totals-box { flex: 1; background: #222; color: #fff; border-radius: 6px; padding: 7px 8px; text-align: center; min-width: 80px; font-size: 13px; margin: 0 3px; font-family: 'Montserrat', Arial, sans-serif; }
         .chart-totals-label { font-size: 12px; color: #bbb; line-height: 1.2;}
         .chart-totals-count { font-size: 15px; font-weight: 700; margin-top: 1px; letter-spacing: .5px;}
-        /* Modal styles */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; padding: 20px 10px;}
         .modal-content { background: var(--card-bg); margin: 20px auto; padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; position: relative; box-shadow: 0 5px 30px rgba(0,0,0,0.5); border: 1px solid var(--border);}
         .close-modal { position: absolute; top: 12px; right: 15px; font-size: 22px; cursor: pointer; color: var(--fg); background: none; border: none; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%;}
@@ -94,8 +102,11 @@
         .detail-label { width: 120px; font-weight: 500; color: #90caf9; flex-shrink: 0;}
         .detail-value { flex: 1; color: var(--fg); word-break: break-word;}
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; margin-top: 10px; border-top: 1px solid var(--border); flex-wrap: wrap;}
+        .edit-field { padding:6px 10px;border-radius:4px;border:1px solid var(--accent);margin-bottom:5px;width:90%;font-size:15px;background:#222;color:#fff;}
+        .edit-label { margin-bottom:3px;font-size:14px;color:#90caf9;display:block;}
+        .save-edit-btn { background: var(--accent); color: #fff; padding: 7px 18px; border-radius: 6px; border: none; font-size: 15px; font-weight: bold; cursor: pointer;}
+        .save-edit-btn:hover { background: #1565c0;}
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap');
-        /* Responsive styles */
         @media (max-width: 650px) {
             .container { max-width: 100vw; padding: 0 2px;}
             .summary-row, .filter-row, .date-selector-group { flex-direction: row; gap: 4px;}
@@ -154,7 +165,6 @@
         <div class="restaurant-title">RAVINTOLA TANDOORI VILLA</div>
         <button class="add-btn" onclick="window.location.href='reservation.html'"><i class="fa fa-plus"></i> Add New Reservation</button>
     </div>
-    <!-- Summary Boxes -->
     <div class="summary-row">
         <div class="summary-box pending selected" data-status="pending">
             <span class="icon"><i class="fas fa-hourglass-half"></i></span>
@@ -172,7 +182,6 @@
             <span class="label">Cancelled</span>
         </div>
     </div>
-    <!-- Filter Boxes -->
     <div class="filter-row">
         <div class="filter-box today" data-filter="today">
             <span class="count" id="today-count">0</span>
@@ -195,7 +204,6 @@
             This Month
         </div>
     </div>
-    <!-- Month/Date Selector -->
     <div class="date-selector-row">
         <label for="month-selector"><b>Select Month/Date:</b></label>
         <div class="date-selector-group">
@@ -207,7 +215,6 @@
             </select>
         </div>
     </div>
-    <!-- Table -->
     <div class="table-container">
         <table>
             <thead>
@@ -226,7 +233,6 @@
         </table>
         <div class="pagination-container" id="pagination-container"></div>
     </div>
-    <!-- Charts Section -->
     <div class="charts-row">
         <div class="chart-container">
             <div class="chart-header" id="weekChartHeader">
@@ -270,44 +276,15 @@
         </div>
     </div>
 </div>
-
-<!-- Modal Popup -->
+<!-- Modal Popup for Viewing and Editing -->
 <div id="reservationModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" id="modal-content-real">
         <button class="close-modal"><i class="fas fa-times"></i></button>
         <div class="modal-header">
-            <h2 class="modal-title">Reservation Details</h2>
+            <h2 class="modal-title" id="modalTitle">Reservation Details</h2>
             <div class="reservation-number" id="modal-reservation-number"></div>
         </div>
-        <div class="modal-body">
-            <div class="detail-row">
-                <div class="detail-label">Customer:</div>
-                <div class="detail-value" id="modal-customer-name"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Phone:</div>
-                <div class="detail-value" id="modal-phone"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Note:</div>
-                <div class="detail-value" id="modal-note"></div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Date & Time:</div>
-                <div class="detail-value">
-                    <div id="modal-date"></div>
-                    <div id="modal-time"></div>
-                </div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Number of People:</div>
-                <div class="detail-value" id="modal-number-people"></div>
-            </div>
-            <div class="detail-row" style="border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
-                <div class="detail-label">Booking Time:</div>
-                <div class="detail-value" id="modal-booking-time"></div>
-            </div>
-        </div>
+        <div class="modal-body" id="modal-body-content"></div>
         <div class="modal-footer" id="modal-footer">
             <button class="close-modal view-close-btn" style="background:var(--border);color:var(--fg);padding:6px 12px;border-radius:4px;cursor:pointer;font-size:13px;">
                 <i class="fas fa-times"></i>
@@ -315,20 +292,18 @@
         </div>
     </div>
 </div>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
- const firebaseConfig = {
-     apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
-  authDomain: "deliverylog-3fe71.firebaseapp.com",
-  databaseURL: "https://deliverylog-3fe71-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "deliverylog-3fe71",
-  storageBucket: "deliverylog-3fe71.firebasestorage.app",
-  messagingSenderId: "728033151860",
-  appId: "1:728033151860:web:fd2791ec61b8c71ecbfa21",
-  measurementId: "G-KNMP81LV6N"
+const firebaseConfig = {
+    apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
+    authDomain: "deliverylog-3fe71.firebaseapp.com",
+    databaseURL: "https://deliverylog-3fe71-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "deliverylog-3fe71",
+    storageBucket: "deliverylog-3fe71.firebasestorage.app",
+    messagingSenderId: "728033151860",
+    appId: "1:728033151860:web:fd2791ec61b8c71ecbfa21",
+    measurementId: "G-KNMP81LV6N"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -341,7 +316,6 @@ const monthAbbrs = [
     "Jan","Feb","Mar","Apr","May","Jun",
     "Jul","Aug","Sep","Oct","Nov","Dec"
 ];
-
 function formatTime(timeStr) {
     if (!timeStr) return 'N/A';
     let timePart = timeStr.split('-')[0].trim();
@@ -360,7 +334,9 @@ function formatTime(timeStr) {
 function formatDateDisplay(dateStr) {
     if (!dateStr) return 'N/A';
     let d = new Date(dateStr);
-    return `${d.getDate()} ${monthAbbrs[d.getMonth()]}`;
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayLabel = days[d.getDay()];
+    return `${d.getDate()} ${monthAbbrs[d.getMonth()]} (${dayLabel})`;
 }
 function isToday(dateStr) {
     let d = new Date(dateStr);
@@ -401,7 +377,6 @@ function isThisMonth(dateStr) {
     let now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 }
-
 const summaryBoxes = document.querySelectorAll('.summary-box');
 const filterBoxes = document.querySelectorAll('.filter-box');
 const monthSelector = document.getElementById('month-selector');
@@ -413,8 +388,6 @@ const viewCloseBtn = document.querySelector('#reservationModal .view-close-btn')
 const paginationContainer = document.getElementById('pagination-container');
 let currentPage = 1;
 const rowsPerPage = 15;
-
-// Chart elements
 const weekChartCtx = document.getElementById('weekChart').getContext('2d');
 const yearChartCtx = document.getElementById('yearChart').getContext('2d');
 let weekChart, yearChart;
@@ -426,17 +399,6 @@ const weekChartHeaderYear = document.getElementById('weekChartHeaderYear');
 const yearChartHeaderYear = document.getElementById('yearChartHeaderYear');
 const weekChartHeaderTitle = document.getElementById('weekChartHeaderTitle');
 const yearChartHeaderTitle = document.getElementById('yearChartHeaderTitle');
-
-// Modal elements
-const modalReservationNumber = document.getElementById('modal-reservation-number');
-const modalCustomerName = document.getElementById('modal-customer-name');
-const modalPhone = document.getElementById('modal-phone');
-const modalNote = document.getElementById('modal-note');
-const modalDate = document.getElementById('modal-date');
-const modalTime = document.getElementById('modal-time');
-const modalNumberPeople = document.getElementById('modal-number-people');
-const modalBookingTime = document.getElementById('modal-booking-time');
-const modalFooter = document.getElementById('modal-footer');
 
 let reservations = [];
 let currentView = {type: 'status', value: 'pending'};
@@ -660,6 +622,7 @@ function renderTable() {
             <td class="status-cell">${statusSelect}</td>
             <td class="note-cell">${reservation.note ? reservation.note : 'N/A'}</td>
             <td>
+                <button class="edit-btn" title="Edit" data-id="${reservation.id}"><i class="fa fa-edit"></i></button>
                 <button class="view-btn" data-id="${reservation.id}"><i class="fas fa-eye"></i> View</button>
             </td>
             <td>
@@ -672,6 +635,13 @@ function renderTable() {
             let id = this.dataset.id;
             let reservationObj = reservations.find(o=>o.id===id);
             if(reservationObj) showReservationModal(reservationObj);
+        });
+        row.querySelector('.edit-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            let id = this.dataset.id;
+            let reservationObj = reservations.find(o=>o.id===id);
+            if(reservationObj) showEditModal(reservationObj);
         });
         row.querySelector('.delete-btn').addEventListener('click', function(e) {
             e.preventDefault();
@@ -691,15 +661,85 @@ function renderTable() {
 }
 
 function showReservationModal(reservation) {
-    modalReservationNumber.textContent = reservation.reservationNumber && String(reservation.reservationNumber).length === 8 ? `#${reservation.reservationNumber}` : 'N/A';
-    modalCustomerName.textContent = reservation.user?.name || 'N/A';
-    modalPhone.textContent = reservation.user?.phone || reservation.phone || 'N/A';
-    modalNote.textContent = reservation.note || 'N/A';
-    modalDate.textContent = reservation.date || 'N/A';
-    modalTime.textContent = formatTime(reservation.time) || 'N/A';
-    modalNumberPeople.textContent = reservation.numberOfPeople || reservation.people || 'N/A';
-    modalBookingTime.textContent = reservation.createdAt ? (new Date(reservation.createdAt)).toLocaleString() : 'N/A';
+    let modalBody = document.getElementById('modal-body-content');
+    let modalFooter = document.getElementById('modal-footer');
+    document.getElementById('modalTitle').textContent = "Reservation Details";
+    modalBody.innerHTML = `
+        <div class="detail-row"><div class="detail-label">Customer:</div><div class="detail-value">${reservation.user?.name || 'N/A'}</div></div>
+        <div class="detail-row"><div class="detail-label">Phone:</div><div class="detail-value">${reservation.user?.phone || reservation.phone || 'N/A'}</div></div>
+        <div class="detail-row"><div class="detail-label">Note:</div><div class="detail-value">${reservation.note || 'N/A'}</div></div>
+        <div class="detail-row"><div class="detail-label">Date &amp; Time:</div><div class="detail-value"><div>${reservation.date ? formatDateDisplay(reservation.date) : 'N/A'}</div><div>${formatTime(reservation.time) || 'N/A'}</div></div></div>
+        <div class="detail-row"><div class="detail-label">Number of People:</div><div class="detail-value">${reservation.numberOfPeople || reservation.people || 'N/A'}</div></div>
+        <div class="detail-row" style="border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
+            <div class="detail-label">Booking Time:</div>
+            <div class="detail-value">${reservation.createdAt ? (new Date(reservation.createdAt)).toLocaleString() : 'N/A'}</div>
+        </div>
+    `;
+    modalFooter.innerHTML = `<button class="close-modal view-close-btn" style="background:var(--border);color:var(--fg);padding:6px 12px;border-radius:4px;cursor:pointer;font-size:13px;">
+        <i class="fas fa-times"></i>
+    </button>`;
     modal.style.display = 'block';
+}
+
+function showEditModal(reservation) {
+    let modalBody = document.getElementById('modal-body-content');
+    let modalFooter = document.getElementById('modal-footer');
+    document.getElementById('modalTitle').textContent = "Edit Reservation";
+    let nameVal = reservation.user?.name || '';
+    let phoneVal = reservation.user?.phone || reservation.phone || '';
+    let dateVal = reservation.date || '';
+    let timeVal = reservation.time || '';
+    let peopleVal = reservation.numberOfPeople || reservation.people || '';
+    let noteVal = reservation.note || '';
+    modalBody.innerHTML = `
+        <label class="edit-label">Name</label>
+        <input class="edit-field" type="text" id="edit-name" value="${nameVal}">
+        <label class="edit-label">Phone</label>
+        <input class="edit-field" type="text" id="edit-phone" value="${phoneVal}">
+        <label class="edit-label">Date</label>
+        <input class="edit-field" type="date" id="edit-date" value="${dateVal}">
+        <label class="edit-label">Time</label>
+        <input class="edit-field" type="time" id="edit-time" value="${timeVal}">
+        <label class="edit-label">Number of People</label>
+        <input class="edit-field" type="number" min="1" id="edit-people" value="${peopleVal}">
+        <label class="edit-label">Note</label>
+        <textarea class="edit-field" id="edit-note">${noteVal}</textarea>
+    `;
+    modalFooter.innerHTML = `
+        <button class="save-edit-btn" id="save-edit-btn"><i class="fa fa-save"></i> Save</button>
+        <button class="close-modal view-close-btn" style="background:var(--border);color:var(--fg);padding:6px 12px;border-radius:4px;cursor:pointer;font-size:13px;">
+            <i class="fas fa-times"></i> Cancel
+        </button>
+    `;
+    modal.style.display = 'block';
+    document.getElementById('save-edit-btn').onclick = function() {
+        let newName = document.getElementById('edit-name').value.trim();
+        let newPhone = document.getElementById('edit-phone').value.trim();
+        let newDate = document.getElementById('edit-date').value;
+        let newTime = document.getElementById('edit-time').value;
+        let newPeople = document.getElementById('edit-people').value;
+        let newNote = document.getElementById('edit-note').value.trim();
+        if(!newName || !newDate || !newTime || !newPeople){
+            alert("Name, Date, Time, Number of People are required.");
+            return;
+        }
+        let userUpdate = Object.assign({}, reservation.user || {}, {name: newName, phone: newPhone});
+        db.ref('reservations/' + reservation.id).update({
+            user: userUpdate,
+            date: newDate,
+            time: newTime,
+            numberOfPeople: newPeople,
+            note: newNote
+        }, function(error){
+            if(!error){
+                modal.style.display = 'none';
+                loadReservations();
+            } else {
+                alert("Failed to update reservation.");
+            }
+        });
+    };
+    modalFooter.querySelector('.view-close-btn').onclick = () => { modal.style.display = 'none'; };
 }
 
 summaryBoxes.forEach(box=>{
@@ -739,14 +779,12 @@ monthSelector.addEventListener('change', ()=>{
     dateFilter = "";
     dateSelector.value = "";
     renderDateSelector();
-    clearBoxSelection();
     currentPage = 1;
     renderTable();
     renderCharts();
 });
 dateSelector.addEventListener('change', ()=>{
     dateFilter = dateSelector.value;
-    clearBoxSelection();
     currentPage = 1;
     renderTable();
     renderCharts();
@@ -779,7 +817,6 @@ window.addEventListener('click',e=>{
     if(e.target===modal) modal.style.display = 'none';
 });
 
-// Load reservations from Firebase
 function loadReservations() {
     db.ref('reservations').on('value', snapshot => {
         reservations = [];
@@ -799,8 +836,6 @@ function loadReservations() {
         renderCharts();
     });
 }
-
-// Charts
 function renderCharts() {
     let today = new Date();
     let weekYear = today.getFullYear();
@@ -899,7 +934,6 @@ function renderCharts() {
         </div>
     `;
 
-    // Year chart
     let year = today.getFullYear();
     let yearLabels = monthAbbrs;
     let yearReservations = [];
