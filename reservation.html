@@ -71,14 +71,11 @@
         input:focus, textarea:focus, select:focus {
             border-color: var(--accent);
         }
-
-        /* Time input wrapper with icon */
         .time-input-wrapper {
             position: relative;
             display: inline-block;
         }
-        input[type="time"] {
-            /* add right padding to make room for the icon */
+        input[type="time"], .custom-time-input {
             padding-right: 44px;
             background: var(--input-bg);
             color: #fff;
@@ -87,6 +84,7 @@
             height: 42px;
             box-sizing: border-box;
             font-size: 1rem;
+            width: 100%;
         }
         .time-icon-button {
             position: absolute;
@@ -111,7 +109,6 @@
             color: #fff;
             background: rgba(255,255,255,0.03);
         }
-
         .date-format-preview {
             font-size: 0.96rem;
             color: #43ea7a;
@@ -133,7 +130,6 @@
         .error {
             color: #ff3d3d; margin-top: 7px; font-size: .98rem; font-weight: 700;
         }
-        /* Popup styles */
         .popup-overlay {
             display: none;
             position: fixed;
@@ -174,6 +170,71 @@
             margin-bottom: 8px;
         }
 
+        /* custom time popup styles */
+        .custom-time-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.78);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .custom-time-popup {
+            background: #181818;
+            color: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px #0007;
+            width: 90vw;
+            max-width: 350px;
+            min-width: 260px;
+            padding: 26px 24px 21px 24px;
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .custom-time-title {
+            font-size: 1.26rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .custom-time-form-row {
+            display: flex;
+            width: 100%;
+            gap: 12px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        .custom-time-form-row select, .custom-time-form-row input[type=number] {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: #fff;
+            font-size: 1.08rem;
+            min-width: 60px;
+        }
+        .custom-time-am-pm {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: #fff;
+            font-size: 1.08rem;
+            min-width: 54px;
+        }
+        .custom-time-popup-btn-row {
+            width: 100%;
+            display: flex;
+            gap: 14px;
+            margin-top: -16px;
+        }
+        .custom-time-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 7px;
+            font-size: 1.06rem; font-weight: 700; padding: 11px 0;
+            width: 90px; cursor: pointer; transition: background .2s, transform .2s;
+        }
+        .custom-time-btn:hover { background: #0d47a1; transform: scale(1.03);}
+
         @media (max-width: 1100px) and (min-width: 651px) {
             body { background: #000; }
             .container { max-width: 99vw; padding: 0 14px; border-radius: 0; box-shadow: none; background: var(--card-bg);}
@@ -181,7 +242,6 @@
             h2 { font-size: 2.2rem; }
             form { gap: 24px; }
             .form-row { margin-bottom: 14px; }
-            /* keep native time control as on desktop */
         }
         @media (max-width: 650px) {
             body { background: #000; }
@@ -194,6 +254,7 @@
             .popup { min-width: 0; padding: 23px 12px 22px 12px;}
             .popup-title { font-size: 1.09rem;}
             .popup-btn { width: 90vw; font-size: 1rem;}
+            .custom-time-popup { min-width: 0; padding: 13px 7px 10px 7px;}
         }
     </style>
 </head>
@@ -223,9 +284,8 @@
                 <div class="form-row">
                     <label for="time">Time*</label>
                     <div class="time-input-wrapper" id="timeWrapper" aria-hidden="false">
-                        <!-- Native time input (unchanged behavior) -->
-                        <input type="time" id="time" name="time" required step="900" placeholder="HH:MM">
-                        <!-- Icon button: clicking will open the time picker on supporting browsers or focus the input -->
+                        <!-- Replace native time picker with a readonly input + popup -->
+                        <input type="text" id="time" name="time" required class="custom-time-input" placeholder="Select time" readonly>
                         <button type="button" id="timePickerBtn" class="time-icon-button" aria-label="Choose time" title="Choose time">
                             <i class="fa fa-clock"></i>
                         </button>
@@ -244,13 +304,47 @@
             <div id="formMessage" class="message"></div>
         </form>
     </div>
-    <!-- Popup -->
+    <!-- Confirmation Popup -->
     <div id="confirmationPopup" class="popup-overlay" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
         <div class="popup">
             <i class="fa fa-check-circle" aria-hidden="true"></i>
             <div class="popup-title" id="popupTitle">Reservation Confirmed!</div>
             <div class="popup-date" id="popupDate"></div>
             <button class="popup-btn" id="doneBtn">Done</button>
+        </div>
+    </div>
+    <!-- Custom Time Picker Popup -->
+    <div id="customTimePopupOverlay" class="custom-time-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="customTimeTitle">
+        <div class="custom-time-popup">
+            <div class="custom-time-title" id="customTimeTitle">Select Time</div>
+            <form id="customTimeForm" autocomplete="off">
+                <div class="custom-time-form-row">
+                    <select id="customHour" aria-label="Hour">
+                        <!-- 1 to 12 -->
+                        <option value="" disabled selected>Hour</option>
+                        <script>
+                        for(let i=1;i<=12;i++){
+                            document.write('<option value="'+i+'">'+i+'</option>');
+                        }
+                        </script>
+                    </select>
+                    <select id="customMinute" aria-label="Minute">
+                        <option value="" disabled selected>Min</option>
+                        <option value="00">00</option>
+                        <option value="15">15</option>
+                        <option value="30">30</option>
+                        <option value="45">45</option>
+                    </select>
+                    <select id="customAmPm" class="custom-time-am-pm" aria-label="AM/PM">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+                <div class="custom-time-popup-btn-row">
+                    <button type="submit" class="custom-time-btn">Set</button>
+                    <button type="button" class="custom-time-btn" id="cancelTimeBtn">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
     <!-- Firebase -->
@@ -278,6 +372,15 @@
     const timePickerBtn = document.getElementById('timePickerBtn');
     const formEl = document.getElementById('reservationForm');
     const formMsg = document.getElementById('formMessage');
+    const timeWrapper = document.getElementById('timeWrapper');
+
+    // Custom time picker popup elements
+    const customTimePopupOverlay = document.getElementById('customTimePopupOverlay');
+    const customTimeForm = document.getElementById('customTimeForm');
+    const customHour = document.getElementById('customHour');
+    const customMinute = document.getElementById('customMinute');
+    const customAmPm = document.getElementById('customAmPm');
+    const cancelTimeBtn = document.getElementById('cancelTimeBtn');
 
     // Set minimum date to today
     dateInputEl.min = new Date().toISOString().split('T')[0];
@@ -296,47 +399,77 @@
         datePreviewEl.textContent = this.value ? formatDateDDMonYYYY(this.value) : '';
     });
 
-    // Time icon behavior:
-    // - On browsers that support HTMLInputElement.showPicker(), it will call that to open the native UI.
-    // - Fallback: focus the input to open the native picker on many mobile browsers, or at least let the user type.
+    // Custom Time Popup - Show/Hide (Easy to use!)
+    function showCustomTimePicker(hour, minute, ampm) {
+        customTimePopupOverlay.style.display = 'flex';
+        // Set defaults if provided
+        customHour.value = hour || "";
+        customMinute.value = minute || "";
+        customAmPm.value = ampm || "PM";
+        customHour.focus();
+    }
+    function hideCustomTimePicker() {
+        customTimePopupOverlay.style.display = 'none';
+        customTimeForm.reset();
+    }
+
+    // Open custom time picker when icon/button or wrapper is clicked
     timePickerBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        // Try to show the browser's native picker (supported in some Chromium-based browsers)
-        try {
-            if (typeof timeInputEl.showPicker === 'function') {
-                timeInputEl.showPicker();
-                return;
-            }
-        } catch (err) {
-            // ignore and fallback to focus below
+        let curTime = timeInputEl.value;
+        let hour = "", minute = "", ampm = "PM";
+        if(curTime) {
+            // convert stored 24h time to 12h and prefill
+            let [h, m] = curTime.split(':');
+            h = parseInt(h,10);
+            ampm = h >= 12 ? "PM" : "AM";
+            hour = ((h % 12) || 12).toString();
+            minute = m;
         }
-        // Fallback: focus the input (works on many devices; won't break desktop)
-        timeInputEl.focus();
-
-        // On some browsers focusing does not open the native picker; we try a synthetic click as last resort.
-        try {
-            timeInputEl.click();
-        } catch (err) {
-            // ignore
-        }
+        showCustomTimePicker(hour, minute, ampm);
     });
-
-    // Optional: allow clicking the wrapper (not just the small icon) to open the picker
-    const timeWrapper = document.getElementById('timeWrapper');
     timeWrapper.addEventListener('click', function (e) {
-        // If the click target is the input itself or the icon, let respective handlers handle it.
-        if (e.target === timeInputEl) return;
-        if (e.target === timePickerBtn || timePickerBtn.contains(e.target)) {
+        if (e.target === timeInputEl) {
+            // input is readonly, open popup
+            let curTime = timeInputEl.value;
+            let hour = "", minute = "", ampm = "PM";
+            if(curTime){
+                let [h, m] = curTime.split(':');
+                h = parseInt(h,10);
+                ampm = h >= 12 ? "PM" : "AM";
+                hour = ((h % 12) || 12).toString();
+                minute = m;
+            }
+            showCustomTimePicker(hour, minute, ampm);
             return;
         }
-        // Otherwise, open the picker similarly to the icon
-        try {
-            if (typeof timeInputEl.showPicker === 'function') {
-                timeInputEl.showPicker();
-                return;
-            }
-        } catch (err) {}
-        timeInputEl.focus();
+        if (e.target === timePickerBtn || timePickerBtn.contains(e.target)) return;
+        // otherwise open popup
+        showCustomTimePicker();
+    });
+
+    // Cancel custom time picker popup
+    cancelTimeBtn.addEventListener('click', function() {
+        hideCustomTimePicker();
+    });
+
+    // On submitting custom time picker form, fill in field in HH:mm (24h)
+    customTimeForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const hour = customHour.value;
+        const minute = customMinute.value;
+        const ampm = customAmPm.value;
+        if(!hour || !minute || !(ampm === "AM" || ampm === "PM")){
+            alert("Please select all fields.");
+            return;
+        }
+        let h = parseInt(hour,10);
+        let m = minute;
+        let hr24 = ampm === "PM" ? (h === 12 ? 12 : h + 12) : (h === 12 ? 0 : h);
+        let hrStr = String(hr24).padStart(2,'0');
+        let finalTime = hrStr + ":" + m;
+        timeInputEl.value = finalTime;
+        hideCustomTimePicker();
     });
 
     // Utility: convert HH:mm (24h) to human-readable 12h for popup
@@ -368,9 +501,10 @@
         hidePopup();
         formEl.reset();
         datePreviewEl.textContent = "";
+        timeInputEl.value = ""; // clear time input
     };
 
-    // Form submit (unchanged behavior, same validation and firebase storage)
+    // Form submit (unchanged logic)
     formEl.addEventListener('submit', function(e) {
         e.preventDefault();
         const name = document.getElementById('name').value.trim();
@@ -419,7 +553,7 @@
         });
     });
 
-    // Initialize: set default step/rounded current time to nearest 15 minutes
+    // Set Default Time (rounded to nearest 15 mins, in 12h format)
     (function setDefaultTime() {
         const now = new Date();
         let min = now.getMinutes();
@@ -427,14 +561,22 @@
         else if (min >= 30) min = 30;
         else if (min >= 15) min = 15;
         else min = 0;
-        const hh = now.getHours();
-        const hhStr = String(hh).padStart(2,'0');
-        const mmStr = String(min).padStart(2,'0');
-        // don't overwrite if user or browser already set something; only set when empty
-        if (!timeInputEl.value) {
-            timeInputEl.value = `${hhStr}:${mmStr}`;
-        }
+        let hh = now.getHours();
+        let ampm = hh >= 12 ? 'PM' : 'AM';
+        let hour12 = ((hh % 12) || 12);
+        let minuteStr = String(min).padStart(2,'0');
+        timeInputEl.value = ''; // clear, show placeholder
+        // Optionally prefill custom picker on first open with current time
+        // (already handled above)
     })();
+
+    // Allow popup dismissed with Esc key
+    document.addEventListener('keydown', function(e){
+        if(e.key === "Escape") {
+            hideCustomTimePicker();
+            hidePopup();
+        }
+    });
     </script>
 </body>
 </html>
