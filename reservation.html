@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RAVINTOLA TANDOORI VILLA - Make a Reservation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #000;
+            --fg: #fff;
+            --card-bg: #000;
+            --accent: #1a73e8;
+            --border: #333;
+            --muted: #90caf9;
+            --input-bg: #232323;
+        }
+        html, body { height: 100%; }
+        body {
+            background: var(--bg); color: var(--fg);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border-radius: 10px; box-shadow: 0 2px 18px #0004;
+            padding: 32px 24px;
+        }
+        h2 {
+            text-align: center; margin-bottom: 23px; font-size: 2rem; color: #fff; font-weight: 900;
+            letter-spacing: 1px;
+        }
+        form {
+            display: flex; flex-direction: column; gap: 22px;
+        }
+        .row-2col {
+            display: flex; gap: 20px;
+        }
+        .row-2col > .form-row {
+            flex: 1 1 0;
+        }
+        .row-3col {
+            display: flex; gap: 20px;
+        }
+        .row-3col > .form-row {
+            flex: 1 1 0;
+        }
+        .form-row {
+            display: flex; flex-direction: column; gap: 8px;
+            margin-bottom: 0;
+        }
+        label {
+            font-weight: 600; color: var(--muted);
+            font-size: 1.07rem; letter-spacing: .5px;
+        }
+        input, select, textarea {
+            background: var(--input-bg); color: #fff; border: 1px solid var(--border);
+            border-radius: 6px; padding: 10px 14px; font-size: 1rem; outline: none;
+            transition: border .2s;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+        }
+        .time-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        input[type="time"], .custom-time-input {
+            padding-right: 44px;
+            background: var(--input-bg);
+            color: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            height: 42px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            width: 100%;
+        }
+        .time-icon-button {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-size: 1.05rem;
+            padding: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+        .time-icon-button:focus {
+            outline: 2px solid rgba(26,115,232,0.18);
+        }
+        .time-icon-button:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.03);
+        }
+        .date-format-preview {
+            font-size: 0.96rem;
+            color: #43ea7a;
+            font-weight: 700;
+            margin-top: 4px;
+            min-height: 1.2em;
+            letter-spacing: 0.5px;
+        }
+        .note-row { margin-top: 0; }
+        .submit-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 8px;
+            padding: 13px 0; font-size: 1.18rem; font-weight: 700; cursor: pointer; margin-top: 8px;
+            transition: background .2s, transform .2s;
+        }
+        .submit-btn:hover { background: #0d47a1; transform: scale(1.03);}
+        .message {
+            margin-top: 14px; text-align: center; color: #43ea7a; font-weight: 700;
+        }
+        .error {
+            color: #ff3d3d; margin-top: 7px; font-size: .98rem; font-weight: 700;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.82);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup {
+            background: #181818;
+            color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px #000a;
+            max-width: 96vw;
+            min-width: 320px;
+            padding: 34px 28px 30px 28px;
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .popup .fa-check-circle {
+            color: #43ea7a;
+            font-size: 3.7rem;
+            margin-bottom: 12px;
+        }
+        .popup-title {
+            font-size: 1.45rem; font-weight: 800; margin-bottom: 10px;
+        }
+        .popup-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 7px;
+            font-size: 1.1rem; font-weight: 700; padding: 11px 0; margin-top: 28px;
+            width: 170px; cursor: pointer; transition: background .2s, transform .2s;
+        }
+        .popup-btn:hover { background: #0d47a1; transform: scale(1.03);}
+        .popup-date {
+            font-size: 1.13rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .popup-details { text-align: left; font-size: 1.03rem; color: #ddd; margin: 14px 0; line-height: 1.5; width: 100%; }
+        .popup-details p { margin: 5px 0; }
+        .popup-details strong { color: #fff; }
+
+        /* loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-spinner {
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
+            color: #fff; font-size: 1.1rem;
+        }
+        .loading-spinner .fa-spinner {
+            font-size: 2.2rem; color: var(--accent);
+        }
+
+        /* custom time popup styles */
+        .custom-time-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.78);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .custom-time-popup {
+            background: #181818;
+            color: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px #0007;
+            width: 90vw;
+            max-width: 350px;
+            min-width: 260px;
+            padding: 26px 24px 21px 24px;
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .custom-time-title {
+            font-size: 1.26rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .custom-time-form-row {
+            display: flex;
+            width: 100%;
+            gap: 12px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        .custom-time-form-row select, .custom-time-form-row input[type=number] {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: #fff;
+            font-size: 1.08rem;
+            min-width: 60px;
+        }
+        .custom-time-am-pm {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: #fff;
+            font-size: 1.08rem;
+            min-width: 54px;
+        }
+        .custom-time-popup-btn-row {
+            width: 100%;
+            display: flex;
+            gap: 14px;
+            margin-top: -16px;
+        }
+        .custom-time-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 7px;
+            font-size: 1.06rem; font-weight: 700; padding: 11px 0;
+            width: 90px; cursor: pointer; transition: background .2s, transform .2s;
+        }
+        .custom-time-btn:hover { background: #0d47a1; transform: scale(1.03);}
+
+        @media (max-width: 1100px) and (min-width: 651px) {
+            body { background: #000; }
+            .container { max-width: 99vw; padding: 0 14px; border-radius: 0; box-shadow: none; background: var(--card-bg);}
+            h2 { font-size: 2.2rem; }
+            form { gap: 24px; }
+            .form-row { margin-bottom: 14px; }
+        }
+        @media (max-width: 650px) {
+            body { background: #000; }
+            .container { padding: 16px 18px; border-radius: 0; background: var(--card-bg);}
+            h2 { font-size: 1.2rem; margin-bottom: 18px;}
+            form { gap: 16px;}
+            .form-row { gap: 7px; margin-bottom: 12px; }
+            .row-2col, .row-3col { flex-direction: column; gap: 12px; }
+            .popup { min-width: 0; padding: 23px 12px 22px 12px;}
+            .popup-title { font-size: 1.09rem;}
+            .popup-btn { width: 90vw; font-size: 1rem;}
+            .popup-details { font-size: 0.95rem; }
+            .custom-time-popup { min-width: 0; padding: 13px 7px 10px 7px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Make a Reservation</h2>
+        <form id="reservationForm" autocomplete="off">
+            <div class="row-2col">
+                <div class="form-row">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" maxlength="50" placeholder="Customer Name">
+                </div>
+                <div class="form-row">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" maxlength="20" placeholder="e.g. +358 401234567">
+                </div>
+            </div>
+            <div class="row-3col">
+                <div class="form-row">
+                    <label for="date">Date* <span style="font-size:0.93em;">(MM/DD/YYYY)</span></label>
+                    <input type="date" id="date" name="date" required>
+                    <span class="date-format-preview" id="datePreview"></span>
+                </div>
+                <div class="form-row">
+                    <label for="time">Time*</label>
+                    <div class="time-input-wrapper" id="timeWrapper" aria-hidden="false">
+                        <!-- Replace native time picker with a readonly input + popup -->
+                        <input type="text" id="time" name="time" required class="custom-time-input" placeholder="Select time" readonly>
+                        <button type="button" id="timePickerBtn" class="time-icon-button" aria-label="Choose time" title="Choose time">
+                            <i class="fa fa-clock"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="numberOfPeople">Number of People*</label>
+                    <input type="number" id="numberOfPeople" name="numberOfPeople" required min="1" max="100" placeholder="e.g. 4">
+                </div>
+            </div>
+            <div class="form-row note-row">
+                <label for="note">Note</label>
+                <textarea id="note" name="note" maxlength="50" placeholder="Any special requests..."></textarea>
+            </div>
+            <button type="submit" class="submit-btn">Submit</button>
+            <div id="formMessage" class="message"></div>
+        </form>
+    </div>
+    <!-- Confirmation Popup -->
+    <div id="confirmationPopup" class="popup-overlay" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+        <div class="popup">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            <div class="popup-title" id="popupTitle">Reservation Confirmed!</div>
+            <div class="popup-date" id="popupDate"></div>
+            <div class="popup-details" id="popupDetails"></div>
+            <button class="popup-btn" id="doneBtn">Done</button>
+        </div>
+    </div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+            <div>Submitting...</div>
+        </div>
+    </div>
+    <!-- Custom Time Picker Popup -->
+    <div id="customTimePopupOverlay" class="custom-time-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="customTimeTitle">
+        <div class="custom-time-popup">
+            <div class="custom-time-title" id="customTimeTitle">Select Time</div>
+            <form id="customTimeForm" autocomplete="off">
+                <div class="custom-time-form-row">
+                    <select id="customHour" aria-label="Hour">
+                        <!-- 1 to 12 -->
+                        <option value="" disabled selected>Hour</option>
+                        <script>
+                        for(let i=1;i<=12;i++){
+                            document.write('<option value="'+i+'">'+i+'</option>');
+                        }
+                        </script>
+                    </select>
+                    <select id="customMinute" aria-label="Minute">
+                        <option value="" disabled selected>Min</option>
+                        <option value="00">00</option>
+                        <option value="15">15</option>
+                        <option value="30">30</option>
+                        <option value="45">45</option>
+                    </select>
+                    <select id="customAmPm" class="custom-time-am-pm" aria-label="AM/PM">
+                        <option value="AM">AM</option>
+                        <option value="PM" selected>PM</option>
+                    </select>
+                </div>
+                <div class="custom-time-popup-btn-row">
+                    <button type="submit" class="custom-time-btn">Set</button>
+                    <button type="button" class="custom-time-btn" id="cancelTimeBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+    // Firebase config (unchanged)
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+   const firebaseConfig = {
+    apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
+    authDomain: "deliverylog-3fe71.firebaseapp.com",
+    databaseURL: "https://deliverylog-3fe71-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "deliverylog-3fe71",
+    storageBucket: "deliverylog-3fe71.firebasestorage.app",
+    messagingSenderId: "728033151860",
+    appId: "1:728033151860:web:fd2791ec61b8c71ecbfa21",
+    measurementId: "G-KNMP81LV6N"
+
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let restaurantName = 'RAVINTOLA TANDOORI VILLA';
+    db.ref('settings/activeRestaurantName').on('value', snap => {
+        if(snap.val()) restaurantName = snap.val();
+    });
+
+    // Elements
+    const dateInputEl = document.getElementById('date');
+    const datePreviewEl = document.getElementById('datePreview');
+    const timeInputEl = document.getElementById('time');
+    const timePickerBtn = document.getElementById('timePickerBtn');
+    const formEl = document.getElementById('reservationForm');
+    const formMsg = document.getElementById('formMessage');
+    const timeWrapper = document.getElementById('timeWrapper');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Custom time picker popup elements
+    const customTimePopupOverlay = document.getElementById('customTimePopupOverlay');
+    const customTimeForm = document.getElementById('customTimeForm');
+    const customHour = document.getElementById('customHour');
+    const customMinute = document.getElementById('customMinute');
+    const customAmPm = document.getElementById('customAmPm');
+    const cancelTimeBtn = document.getElementById('cancelTimeBtn');
+
+    // Set minimum date to today
+    dateInputEl.min = new Date().toISOString().split('T')[0];
+
+    // Date preview formatting
+    function formatDateDDMonYYYY(dateStr) {
+        if(!dateStr) return '';
+        const d = new Date(dateStr);
+        if(isNaN(d.getTime())) return dateStr;
+        const day = d.getDate().toString().padStart(2,'0');
+        const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const mon = monthNames[d.getMonth()];
+        return `${day}/${mon}/${d.getFullYear()}`;
+    }
+    dateInputEl.addEventListener('input', function() {
+        datePreviewEl.textContent = this.value ? formatDateDDMonYYYY(this.value) : '';
+    });
+
+    // Custom Time Popup - Show/Hide (Easy to use!)
+    function showCustomTimePicker(hour, minute, ampm) {
+        customTimePopupOverlay.style.display = 'flex';
+        // Set defaults if provided
+        customHour.value = hour || "";
+        customMinute.value = minute || "";
+        customAmPm.value = ampm || "PM";
+        customHour.focus();
+    }
+    function hideCustomTimePicker() {
+        customTimePopupOverlay.style.display = 'none';
+        customTimeForm.reset();
+    }
+
+    // Open custom time picker when icon/button or wrapper is clicked
+    timePickerBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        let curTime = timeInputEl.value;
+        let hour = "", minute = "", ampm = "PM";
+        if(curTime) {
+            // convert stored 24h time to 12h and prefill
+            let [h, m] = curTime.split(':');
+            h = parseInt(h,10);
+            ampm = h >= 12 ? "PM" : "AM";
+            hour = ((h % 12) || 12).toString();
+            minute = m;
+        }
+        showCustomTimePicker(hour, minute, ampm);
+    });
+    timeWrapper.addEventListener('click', function (e) {
+        if (e.target === timeInputEl) {
+            // input is readonly, open popup
+            let curTime = timeInputEl.value;
+            let hour = "", minute = "", ampm = "PM";
+            if(curTime){
+                let [h, m] = curTime.split(':');
+                h = parseInt(h,10);
+                ampm = h >= 12 ? "PM" : "AM";
+                hour = ((h % 12) || 12).toString();
+                minute = m;
+            }
+            showCustomTimePicker(hour, minute, ampm);
+            return;
+        }
+        if (e.target === timePickerBtn || timePickerBtn.contains(e.target)) return;
+        // otherwise open popup
+        showCustomTimePicker();
+    });
+
+    // Cancel custom time picker popup
+    cancelTimeBtn.addEventListener('click', function() {
+        hideCustomTimePicker();
+    });
+
+    // On submitting custom time picker form, fill in field in HH:mm (24h)
+    customTimeForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const hour = customHour.value;
+        const minute = customMinute.value;
+        const ampm = customAmPm.value;
+        if(!hour || !minute || !(ampm === "AM" || ampm === "PM")){
+            alert("Please select all fields.");
+            return;
+        }
+        let h = parseInt(hour,10);
+        let m = minute;
+        let hr24 = ampm === "PM" ? (h === 12 ? 12 : h + 12) : (h === 12 ? 0 : h);
+        let hrStr = String(hr24).padStart(2,'0');
+        let finalTime = hrStr + ":" + m;
+        timeInputEl.value = finalTime;
+        hideCustomTimePicker();
+    });
+
+    // Utility helpers
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+    function formatHumanTime(hhmm) {
+        if(!hhmm) return '';
+        const p = hhmm.split(':');
+        if (p.length < 2) return hhmm;
+        let h = parseInt(p[0],10);
+        const m = p[1];
+        let ampm = 'AM';
+        if (h === 0) { h = 12; ampm = 'AM'; }
+        else if (h === 12) { ampm = 'PM'; }
+        else if (h > 12) { h = h - 12; ampm = 'PM'; }
+        else { ampm = 'AM'; }
+        return `${h}:${m} ${ampm}`;
+    }
+
+    // Popup show/hide
+    function showPopup(name, phone, dateStr, timeStr, people, note) {
+        document.getElementById('confirmationPopup').style.display = "flex";
+        const dateFormatted = formatDateDDMonYYYY(dateStr);
+        const humanTime = timeStr ? formatHumanTime(timeStr) : '';
+        const peopleText = people ? people + ' people' : '';
+        const detailsHtml = `
+            <p><strong>Name:</strong> ${escapeHtml(name) || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${escapeHtml(phone) || 'N/A'}</p>
+            <p><strong>Date:</strong> ${dateFormatted}</p>
+            <p><strong>Time:</strong> ${humanTime}</p>
+            <p><strong>People:</strong> ${peopleText}</p>
+            ${note ? `<p><strong>Note:</strong> ${escapeHtml(note)}</p>` : ''}
+        `;
+        document.getElementById('popupTitle').textContent = `Thanks for reserving a table at ${restaurantName}!`;
+        document.getElementById('popupDate').textContent = '';
+        document.getElementById('popupDetails').innerHTML = detailsHtml;
+    }
+    function hidePopup() {
+        document.getElementById('confirmationPopup').style.display = "none";
+    }
+    function showLoading() {
+        loadingOverlay.style.display = 'flex';
+    }
+    function hideLoading() {
+        loadingOverlay.style.display = 'none';
+    }
+    document.getElementById('doneBtn').onclick = function() {
+        hidePopup();
+        formEl.reset();
+        datePreviewEl.textContent = "";
+        timeInputEl.value = ""; // clear time input
+    };
+
+    // Form submit (unchanged logic)
+    formEl.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const note = document.getElementById('note').value.trim();
+        const dateInput = dateInputEl.value;
+        const timeInput = timeInputEl.value;
+        const numberOfPeople = parseInt(document.getElementById('numberOfPeople').value, 10);
+
+        formMsg.textContent = '';
+        formMsg.className = 'message';
+
+        // Validation
+        let error = '';
+        if (!dateInput) error = 'Date is required.';
+        else if (!timeInput) error = 'Time is required.';
+        else if (!numberOfPeople || numberOfPeople < 1 || numberOfPeople > 100) error = 'Number of people must be between 1 and 100.';
+        if (error) {
+            formMsg.textContent = error;
+            formMsg.className = 'message error';
+            return;
+        }
+
+        // Prepare reservation data
+        const newRef = db.ref('reservations').push();
+        const reservationId = newRef.key;
+        const reservationData = {
+            id: reservationId,
+            user: { name, phone },
+            date: dateInput, // store as YYYY-MM-DD
+            time: timeInput, // store as HH:mm (24-hour)
+            numberOfPeople,
+            note,
+            status: 'accepted',
+            _tableStatus: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        showLoading();
+        newRef.set(reservationData, function(err){
+            hideLoading();
+            if(err) {
+                formMsg.textContent = 'Failed to submit reservation. Try again.';
+                formMsg.className = 'message error';
+            } else {
+                formMsg.textContent = '';
+                showPopup(name, phone, dateInput, timeInput, numberOfPeople, note);
+            }
+        });
+    });
+
+    // Set Default Time (rounded to nearest 15 mins, in 12h format)
+    (function setDefaultTime() {
+        const now = new Date();
+        let min = now.getMinutes();
+        if (min >= 45) min = 45;
+        else if (min >= 30) min = 30;
+        else if (min >= 15) min = 15;
+        else min = 0;
+        let hh = now.getHours();
+        let ampm = hh >= 12 ? 'PM' : 'AM';
+        let hour12 = ((hh % 12) || 12);
+        let minuteStr = String(min).padStart(2,'0');
+        timeInputEl.value = ''; // clear, show placeholder
+        // Optionally prefill custom picker on first open with current time
+        // (already handled above)
+    })();
+
+    // Allow popup dismissed with Esc key
+    document.addEventListener('keydown', function(e){
+        if(e.key === "Escape") {
+            hideCustomTimePicker();
+            hidePopup();
+        }
+    });
+    </script>
+</body>
+</html>
