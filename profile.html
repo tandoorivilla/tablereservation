@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg: #0d1117; --fg: #e4e4e4; --accent: #1a73e8; --card-bg: #161b22; --border: #30363d; --danger: #ff3d3d; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--fg); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; min-height: 100vh; }
+        .container { max-width: 600px; margin: 40px auto; padding: 0 12px; }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 24px; }
+        .section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 18px; }
+        .section h2 { margin: 0 0 14px; font-size: 18px; color: #fff; }
+        .name-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+        .name-row input { flex: 1; background: #0d1117; color: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 14px; }
+        .name-row button { background: #222; color: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px; cursor: pointer; font-size: 13px; }
+        .name-row button:hover { background: var(--accent); border-color: var(--accent); }
+        .name-row button.active { background: var(--accent); border-color: var(--accent); }
+        .add-row { display: flex; gap: 8px; margin-top: 14px; }
+        .add-row input { flex: 1; background: #0d1117; color: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 14px; }
+        .primary-btn { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-size: 14px; font-weight: 700; }
+        .primary-btn:hover { filter: brightness(0.9); }
+        .danger-btn { background: var(--danger); color: #fff; border: none; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-size: 14px; font-weight: 700; }
+        .pin-row { display: flex; flex-direction: column; gap: 10px; }
+        .pin-row input { background: #0d1117; color: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 16px; letter-spacing: 4px; }
+        .toggle-row { display: flex; align-items: center; gap: 10px; }
+        .toggle-row input { width: 18px; height: 18px; }
+        .back-link { display: inline-block; margin-top: 20px; color: var(--accent); text-decoration: none; font-weight: 700; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Profile</h1>
+
+    <div class="section">
+        <h2>Restaurant Names</h2>
+        <div id="name-list"></div>
+        <div class="add-row">
+            <input type="text" id="new-name" placeholder="Add restaurant name">
+            <button class="primary-btn" id="add-name-btn">Add</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>PIN Lock</h2>
+        <div class="pin-row">
+            <input type="password" id="pin-input" maxlength="6" placeholder="Set a 4-6 digit PIN" inputmode="numeric">
+            <div class="toggle-row">
+                <input type="checkbox" id="pin-toggle">
+                <label for="pin-toggle">Activate PIN lock</label>
+            </div>
+            <button class="primary-btn" id="save-pin-btn">Save PIN</button>
+            <button class="danger-btn" id="logout-btn" style="display:none;">Logout</button>
+        </div>
+    </div>
+
+    <a class="back-link" href="index.html"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWDx1Sj-S2liB2eI5h6pi4JwCxUokRDpw",
+        authDomain: "newreservation-f307f.firebaseapp.com",
+        databaseURL: "https://newreservation-f307f-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "newreservation-f307f",
+        storageBucket: "newreservation-f307f.firebasestorage.app",
+        messagingSenderId: "62177167686",
+        appId: "1:62177167686:web:db2b353710dab365e3bd47",
+        measurementId: "G-7DV9CVE3TM"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let currentNames = [];
+    let activeName = 'RAVINTOLA TANDOORI VILLA';
+
+    // PIN values synced from Firebase settings
+
+    function normalizeNames(val) {
+        if(!val) return [];
+        if(Array.isArray(val)) return val.filter(Boolean);
+        return Object.values(val).filter(Boolean);
+    }
+
+    function escapeHtml(text) {
+        if(!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function renderNames() {
+        const container = document.getElementById('name-list');
+        if(!currentNames.length) {
+            container.innerHTML = '<div style="color:#888; margin-bottom:8px;">No saved names. Add one below.</div>';
+        } else {
+            container.innerHTML = currentNames.map((name, idx) => `
+                <div class="name-row" data-idx="${idx}">
+                    <input type="text" value="${escapeHtml(name)}" data-idx="${idx}">
+                    <button class="use-btn ${name === activeName ? 'active' : ''}" data-name="${escapeHtml(name)}">${name === activeName ? 'Active' : 'Use'}</button>
+                    <button class="save-btn" data-idx="${idx}">Save</button>
+                    <button class="delete-btn" data-idx="${idx}">Delete</button>
+                </div>
+            `).join('');
+        }
+    }
+
+    db.ref('settings').on('value', snap => {
+        const data = snap.val() || {};
+        currentNames = normalizeNames(data.restaurantNames);
+        activeName = data.activeRestaurantName || 'RAVINTOLA TANDOORI VILLA';
+        if(!currentNames.length) {
+            currentNames = ['RAVINTOLA TANDOORI VILLA'];
+            db.ref('settings/restaurantNames').set(currentNames);
+            db.ref('settings/activeRestaurantName').set(activeName);
+        }
+        renderNames();
+
+        // Update PIN UI from Firebase
+        pinInput.value = data.pin || '';
+        pinToggle.checked = data.pinEnabled === true;
+        logoutBtn.style.display = data.pinEnabled === true ? 'inline-block' : 'none';
+    });
+
+    document.getElementById('name-list').addEventListener('click', function(e){
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const idx = parseInt(btn.dataset.idx, 10);
+        if(btn.classList.contains('use-btn')) {
+            activeName = btn.dataset.name;
+            db.ref('settings/activeRestaurantName').set(activeName);
+        } else if(btn.classList.contains('save-btn')) {
+            const input = this.querySelector(`input[data-idx="${idx}"]`);
+            const newName = input.value.trim();
+            if(!newName) return;
+            if(currentNames[idx] === activeName) activeName = newName;
+            currentNames[idx] = newName;
+            db.ref('settings/restaurantNames').set(currentNames);
+            db.ref('settings/activeRestaurantName').set(activeName);
+        } else if(btn.classList.contains('delete-btn')) {
+            const deleted = currentNames[idx];
+            currentNames.splice(idx, 1);
+            if(deleted === activeName) {
+                activeName = currentNames[0] || 'RAVINTOLA TANDOORI VILLA';
+            }
+            db.ref('settings/restaurantNames').set(currentNames);
+            db.ref('settings/activeRestaurantName').set(activeName);
+        }
+    });
+
+    document.getElementById('add-name-btn').addEventListener('click', ()=> {
+        const input = document.getElementById('new-name');
+        const name = input.value.trim();
+        if(!name) return;
+        currentNames.push(name);
+        if(!activeName || activeName === 'RAVINTOLA TANDOORI VILLA') activeName = name;
+        db.ref('settings/restaurantNames').set(currentNames);
+        db.ref('settings/activeRestaurantName').set(activeName);
+        input.value = '';
+    });
+
+    const pinInput = document.getElementById('pin-input');
+    const pinToggle = document.getElementById('pin-toggle');
+    const savePinBtn = document.getElementById('save-pin-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    savePinBtn.addEventListener('click', ()=> {
+        const pin = pinInput.value.trim();
+        if(pin && !/^\d{4,6}$/.test(pin)) {
+            alert('PIN must be 4-6 digits.');
+            return;
+        }
+        db.ref('settings/pin').set(pin);
+        db.ref('settings/pinEnabled').set(pinToggle.checked);
+        db.ref('settings/locked').set(pinToggle.checked ? true : false);
+        alert('PIN settings saved.');
+        logoutBtn.style.display = pinToggle.checked ? 'inline-block' : 'none';
+    });
+
+    logoutBtn.addEventListener('click', ()=> {
+        db.ref('settings/locked').set(true, () => {
+            window.location.href = 'index.html';
+        });
+    });
+</script>
+</body>
+</html>
