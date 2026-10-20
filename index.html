@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+
+
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -17,7 +19,7 @@
             --pending: #ff9800;
             --completed: #205c26;
             --cancelled: #992424;
-            --edit-btn: #ffeb3b;
+            --edit-btn: #ffd54f;
             --edit-btn-hover: #fbc02d;
             --table-alt1: #000;
             --table-alt2: #181818;
@@ -33,7 +35,10 @@
         .container { max-width: 1100px; margin: 36px auto 20px; padding: 0 12px; }
 
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 14px 0; flex-wrap: nowrap; position: relative; }
-        .restaurant-title { font-size: 2.2rem; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-align: center; flex: 1; text-transform: uppercase; text-shadow: 0 0 10px rgba(26,115,232,.45); padding: 0 50px 0 0; }
+        .live-clock { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; background: linear-gradient(180deg, #1e1e1e 0%, #0a0a0a 100%); border: 1px solid rgba(0,0,0,.6); border-radius: 14px; padding: 8px 16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.15), inset 0 -3px 0 rgba(0,0,0,.5), 0 5px 0 rgba(0,0,0,.55), 0 10px 18px rgba(0,0,0,.5); font-family: 'Montserrat', 'Arial', sans-serif; z-index: 2; }
+        .live-clock .clock-time { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: #fff; text-shadow: 0 0 8px rgba(255,255,255,.55), 0 2px 0 #000, 0 1px 3px rgba(0,0,0,.8); font-variant-numeric: tabular-nums; }
+        .live-clock .clock-date { font-size: 10px; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
+        .restaurant-title { font-size: 2.2rem; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-align: center; flex: 1; text-transform: uppercase; text-shadow: 0 0 10px rgba(26,115,232,.45); margin-left: 175px; }
 
         .top-actions { display: flex; align-items: center; gap: 10px; position: relative; }
         .add-btn { background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: filter .2s, transform .2s; display: flex; align-items: center; gap: 8px;}
@@ -67,26 +72,50 @@
         .notification-pagination button.active { background: var(--accent); border-color: var(--accent); font-weight: 700; }
         .notification-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .summary-row, .filter-row { display: flex; gap: 18px; margin-bottom: 22px; flex-wrap: wrap; }
-        .summary-box { flex: 1; min-width: 120px; box-shadow: 0 2px 8px #0003; border-radius: 8px; padding: var(--box-padding); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: box-shadow .2s, transform .2s, border-bottom .2s; border: 2px solid transparent; position: relative; background: linear-gradient(90deg, #fbc02d 0%, #ff9800 100%); color: #fff;}
-        .summary-box.pending { background: linear-gradient(90deg, #fbc02d 0%, #ff9800 100%); }
-        .summary-box.completed { background: linear-gradient(90deg, #43ea7a 0%, #205c26 100%); }
-        .summary-box.cancelled { background: linear-gradient(90deg, #ff3d3d 0%, #992424 100%); }
-        .summary-box:hover { box-shadow: 0 4px 18px #0006; transform: scale(1.04); }
-        .summary-box.selected { border-bottom: 4px solid #fff; }
-        .summary-box .icon { font-size: 22px; margin-bottom: 4px; }
-        .summary-box .count { font-family: 'Montserrat', 'Arial', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 1px; margin-bottom: 2px; }
-        .summary-box .label { font-size: 15px; color: #fff; margin-top: 2px; font-family: 'Montserrat', 'Arial', sans-serif; letter-spacing: 0.5px; }
+        .summary-row, .filter-row { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: nowrap; overflow-x: auto; padding: 8px 4px; }
+        .summary-box { flex: 1 1 0; min-width: auto; border-radius: 14px; padding: 12px 10px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform .12s, box-shadow .12s; border: 1px solid rgba(0,0,0,.55); position: relative; background: linear-gradient(180deg, #233dff 0%, #1a237e 100%); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -3px 0 rgba(0,0,0,.35), 0 5px 0 rgba(0,0,0,.55), 0 10px 18px rgba(0,0,0,.45); }
+        .summary-box.pending { background: linear-gradient(180deg, #f9a825 0%, #ef6c00 100%); }
+        .summary-box.completed { background: linear-gradient(180deg, #66bb6a 0%, #205c26 100%); }
+        .summary-box.cancelled { background: linear-gradient(180deg, #ff5252 0%, #992424 100%); }
+        .summary-box:hover { transform: translateY(-1px); }
+        .summary-box:active { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 -1px 0 rgba(0,0,0,.3), 0 2px 0 rgba(0,0,0,.55), 0 4px 8px rgba(0,0,0,.4); }
+        .summary-box.selected { outline: none; border-color: #fff; filter: brightness(1.2); animation: none; }
+        .summary-box .icon { font-size: 16px; margin-bottom: 0; }
+        .summary-box .count { font-family: 'Montserrat', 'Arial', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 1px; margin-bottom: 0; }
+        .summary-box .label { font-size: 12px; color: #fff; margin-top: 0; font-family: 'Montserrat', 'Arial', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
 
-        .filter-box { flex: 1; min-width: 120px; background: linear-gradient(90deg, #233dff 0%, #1a237e 100%); box-shadow: 0 2px 8px #0003; border-radius: 8px; padding: var(--box-padding); display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 16px; color: #fff; justify-content: center; transition: box-shadow .2s, transform .2s, border-bottom .2s; border: 2px solid transparent; font-family: 'Montserrat', 'Arial', sans-serif;}
-        .filter-box .count { font-size: 22px; font-weight: 700; margin-bottom: 3px; font-family: 'Montserrat', 'Arial', sans-serif; }
-        .filter-box.selected { border-bottom: 4px solid #fff; }
-        .filter-box:hover { box-shadow: 0 4px 18px #0006; transform: scale(1.04); }
+        .filter-box { flex: 1 1 0; min-width: auto; background: linear-gradient(180deg, #233dff 0%, #1a237e 100%); border-radius: 14px; padding: 10px 8px; display: flex; flex-direction: row; align-items: center; cursor: pointer; font-size: 12px; color: #fff; justify-content: center; gap: 6px; transition: transform .12s, box-shadow .12s; border: 1px solid rgba(0,0,0,.55); font-family: 'Montserrat', 'Arial', sans-serif; white-space: nowrap; box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -3px 0 rgba(0,0,0,.35), 0 5px 0 rgba(0,0,0,.55), 0 10px 18px rgba(0,0,0,.45); }
+        .filter-box .count { font-size: 14px; font-weight: 800; margin-bottom: 0; font-family: 'Montserrat', 'Arial', sans-serif; }
+        .filter-box.selected { outline: none; border-color: #fff; filter: brightness(1.2); animation: none; }
+        .filter-box:hover { transform: translateY(-1px); }
+        .filter-box:active { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 -1px 0 rgba(0,0,0,.3), 0 2px 0 rgba(0,0,0,.55), 0 4px 8px rgba(0,0,0,.4); }
 
         .date-selector-row { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: nowrap; }
         .date-selector-left { display:flex; align-items:center; gap:10px; }
         .date-selector-group { display: flex; gap: 8px; align-items: center; }
         .month-selector, .date-selector { background: var(--card-bg); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; font-size: 15px; outline: none; }
+        .important-dates { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
+        .imp-chip { background: var(--card-bg); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 12px; color: #fff; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+        .imp-chip:hover { border-color: var(--accent); }
+        .imp-chip .imp-date { color: var(--accent); font-weight: 800; }
+        .imp-chip .imp-remove { color: #888; font-size: 11px; margin-left: 2px; }
+        .imp-chip .imp-remove:hover { color: #ff3d3d; }
+        .imp-add { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--card-bg); color: var(--accent); font-size: 14px; cursor: pointer; flex-shrink: 0; }
+        .imp-add:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+        .imp-chip .imp-note { display: block; max-width: 120px; font-size: 12px; font-weight: 700; color: #fff; text-transform: uppercase; white-space: normal; word-break: break-word; line-height: 1.25; }
+        .imp-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 300; align-items: center; justify-content: center; padding: 16px; }
+        .imp-modal.open { display: flex; }
+        .imp-modal-box { background: linear-gradient(180deg, #1e1e1e 0%, #121212 100%); border: 1px solid var(--accent); border-radius: 14px; padding: 22px 20px; width: 100%; max-width: 480px; box-shadow: 0 0 0 1px rgba(26,115,232,.3), 0 12px 40px rgba(0,0,0,.7); }
+        .imp-modal-box h3 { margin: 0 0 16px; font-size: 16px; color: #fff; text-align: center; letter-spacing: .5px; text-transform: uppercase; }
+        .imp-modal-row { display: flex; gap: 12px; align-items: flex-end; }
+        .imp-modal-row label { font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+        .imp-modal-row .imp-field { flex: 1; min-width: 0; }
+        .imp-modal input { width: 100%; background: var(--input-bg); color: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 14px; outline: none; box-sizing: border-box; }
+        .imp-modal input:focus { border-color: var(--accent); }
+        #imp-note-input { text-transform: uppercase; }
+        .imp-modal-btns { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+        .imp-save { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 11px 28px; font-size: 14px; font-weight: 800; cursor: pointer; }
+        .imp-cancel { background: #222; color: #ccc; border: 1px solid #444; border-radius: 8px; padding: 11px 24px; font-size: 14px; cursor: pointer; }
 
         .table-container { background: var(--card-bg); padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px #0001; margin-top: 20px; overflow-x: auto; }
         .table-actions { display:flex; justify-content:flex-end; gap:8px; margin-bottom:8px; }
@@ -179,56 +208,86 @@
         .input-with-icon input[type="date"], .input-with-icon input[type="time"] { padding-right: 40px; background: var(--input-bg); color: #fff; border: 1px solid var(--border); border-radius: 6px; height: 40px; box-sizing: border-box; }
 
         .table-container table { display: none; }
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-top: 16px; }
-        .card-box { background: linear-gradient(145deg, #1a1a1a 0%, #121212 100%); border: 1px solid rgba(255,255,255,0.06); border-left: 5px solid #555; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; word-break: break-word; box-shadow: 0 4px 14px rgba(0,0,0,.25); transition: transform .2s, box-shadow .2s; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 16px; }
+        .card-box { background: linear-gradient(145deg, #1a1a1a 0%, #121212 100%); border: 1px solid rgba(255,255,255,0.06); border-left: 4px solid #555; border-top: 3px solid var(--day-color, transparent); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; font-size: 13px; word-break: break-word; box-shadow: 0 2px 8px rgba(0,0,0,.25), 0 0 18px -8px var(--day-color, transparent); transition: transform .2s, box-shadow .2s; }
         .card-box:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
         .card-box.pending { border-left-color: #ff9800; }
         .card-box.completed { border-left-color: #43ea7a; }
         .card-box.cancelled { border-left-color: #ff3d3d; }
-        .card-box.pending .card-name { color: #ff9800; }
-        .card-box.completed .card-name { color: #43ea7a; }
-        .card-box.cancelled .card-name { color: #ff3d3d; }
-        .card-header { background: linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(0,0,0,0) 100%); color: #fff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        .card-title { display: flex; flex-direction: column; gap: 4px; }
-        .card-name { font-size: 18px; font-weight: 800; letter-spacing: .5px; }
-        .card-day { font-size: 13px; color: var(--muted); font-weight: 500; }
-        .card-people { text-align: right; color: #fff; font-size: 24px; font-weight: 800; line-height: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .card-people span { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-        .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
-        .card-row { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-        .card-tag { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; min-width: 60px; margin-top: 4px; }
-        .card-value { flex: 1; color: #fff; font-size: 14px; }
-        .card-date { color: #fff; font-size: 14px; font-weight: 500; }
-        .card-time { color: #fff; font-size: 14px; font-weight: 500; }
-        .card-phone { color: var(--muted); font-size: 14px; font-weight: 500; }
-        .card-note { color: #ccc; font-size: 14px; line-height: 1.5; }
-        .card-advance { color: #fff; font-size: 15px; font-weight: 700; }
-        .card-table { color: #fff; font-size: 15px; font-weight: 700; }
+        .card-box.pending .card-name, .card-box.completed .card-name, .card-box.cancelled .card-name { color: #fff; }
+        .card-header { background: linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(0,0,0,0) 100%); color: #fff; padding: 7px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .card-title { display: flex; flex-direction: column; gap: 1px; }
+        .card-name { font-size: 15px; font-weight: 900; letter-spacing: .3px; color: #fff; text-transform: uppercase; }
+        .card-day { font-size: 11px; color: var(--muted); font-weight: 500; }
+        .card-people { text-align: right; color: #fff; font-size: 18px; font-weight: 800; line-height: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .card-people span { font-size: 9px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .card-body { padding: 8px 12px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        .card-row { display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
+        .card-tag { color: #888; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; min-width: 45px; margin-top: 3px; }
+        .card-value { flex: 1; color: #fff; font-size: 12px; }
+        .card-date { color: #fff; font-size: 12px; font-weight: 500; }
+        .card-time { color: #fff; font-size: 12px; font-weight: 500; }
+        .card-phone { color: var(--muted); font-size: 12px; font-weight: 500; }
+        .card-note { color: #ccc; font-size: 12px; line-height: 1.4; }
+        .card-advance { color: #fff; font-size: 13px; font-weight: 700; }
+        .card-table { color: #fff; font-size: 13px; font-weight: 700; }
+        .card-head-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .card-status { margin: 0; }
-        .card-status .status-select-wrapper { width: 125px; height: 30px; }
-        .card-status .status-select { width: 125px; font-size: 13px; padding: 5px 24px 5px 10px; height: 30px; }
-        .card-status .dropdown-icon { right: 8px; font-size: 13px; }
-        .table-select-wrapper { position: relative; display: inline-block; width: 72px; height: 30px; }
-        .table-select { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 5px 22px 5px 8px; font-size: 13px; font-weight: 800; width: 72px; height: 30px; outline: none; appearance: none; cursor: pointer; box-shadow: 0 0 10px rgba(26,115,232,.6); }
-        .table-select-wrapper .dropdown-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 12px; color: #fff; opacity: 0.8; }
-        .card-actions { display: flex; gap: 8px; margin-top: 6px; }
-        .card-actions .edit-btn, .card-actions .delete-btn, .card-actions .view-btn { padding: 8px 14px; font-size: 14px; margin: 0; border-radius: 6px; background: #222; border: 1px solid #444; color: #fff; transition: all .2s; }
+        .card-status-row { display: flex; justify-content: flex-end; }
+        .card-status .status-select-wrapper { width: 105px; height: 30px; border-radius: 999px; overflow: hidden; }
+        .card-status .status-select { width: 105px; font-size: 11px; padding: 4px 22px 4px 12px; height: 30px; border-radius: 999px; }
+        .card-status .dropdown-icon { right: 10px; font-size: 11px; }
+        .card-highlights { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: linear-gradient(90deg, color-mix(in srgb, var(--day-color, #1a73e8) 18%, transparent) 0%, transparent 100%); border: 1px solid var(--day-color, rgba(26,115,232,0.4)); border-radius: 6px; padding: 6px 10px; }
+        .hl-value { color: var(--day-color, #fff); }
+        .hl-item { display: flex; flex-direction: column; align-items: center; gap: 1px; flex: 1; }
+        .hl-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .hl-value { font-size: 14px; font-weight: 800; color: #fff; white-space: nowrap; }
+        .card-note-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 5px 8px; font-size: 12px; color: #ccc; line-height: 1.35; min-height: 18px; }
+        .table-select-wrapper { position: relative; display: inline-block; width: 88px; height: 30px; }
+        .table-pill { display: flex; align-items: center; justify-content: center; width: 88px; height: 30px; background: var(--accent); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -3px 0 rgba(0,0,0,.4), 0 0 10px rgba(26,115,232,.6); font-family: 'Montserrat', 'Arial', sans-serif; }
+        .table-select { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 4px 22px 4px 10px; font-size: 12px; font-weight: 800; width: 88px; height: 30px; outline: none; appearance: none; cursor: pointer; box-shadow: 0 0 10px rgba(26,115,232,.6); }
+        .table-select-wrapper:not(.editing) .table-select, .table-select-wrapper:not(.editing) .dropdown-icon { display: none; }
+        .table-select-wrapper.editing .table-pill { display: none; }
+        .table-select-wrapper .dropdown-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 11px; color: #fff; opacity: 0.8; }
+        .card-actions { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+        .card-actions .card-status { margin-left: auto; }
+        .card-actions .card-status .status-select-wrapper { width: 96px; height: 26px; border-radius: 999px; overflow: hidden; }
+        .card-actions .card-status .status-select { width: 96px; font-size: 10px; padding: 4px 20px 4px 10px; height: 26px; border-radius: 999px; }
+        .card-actions .card-status .dropdown-icon { right: 9px; font-size: 10px; }
+        .card-actions .edit-btn, .card-actions .delete-btn, .card-actions .view-btn { padding: 5px 10px; font-size: 11px; margin: 0; border-radius: 5px; background: #222; border: 1px solid #444; color: #fff; transition: all .2s; }
         .card-actions .edit-btn:hover, .card-actions .delete-btn:hover, .card-actions .view-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
         .card-empty { grid-column: 1 / -1; padding: 20px; text-align: center; color: #bbb; }
         /* Mobile tweaks */
         @media (max-width: 650px) {
-            .restaurant-title { font-size: 1.4rem; padding: 0 50px 0 0; }
+            .restaurant-title { font-size: 1.15rem; margin-left: 0; }
+            .live-clock { display: none; }
+            .live-clock { padding: 6px 10px; }
+            .live-clock .clock-time { font-size: 13px; }
+            .live-clock .clock-date { font-size: 8px; }
             .desktop-add-btn { display: none; }
             .mobile-add-section { display: flex; justify-content: center; margin: 20px 0; }
             .mobile-add-section .add-btn { padding: 14px 28px; font-size: 1.05rem; border-radius: 6px; box-shadow: 0 0 15px rgba(26,115,232,.4); }
             .top-bar { padding: 16px 0; }
-            .summary-row, .filter-row { gap: 8px; margin-bottom: 18px; }
-            .summary-box { flex: 1 1 calc(33% - 8px); min-width: auto; padding: 8px 4px; }
-            .summary-box .icon { font-size: 14px; margin-bottom: 2px; }
-            .summary-box .count { font-size: 18px; }
-            .summary-box .label { font-size: 10px; }
-            .filter-box { flex: 1 1 calc(33% - 8px); min-width: auto; padding: 8px 4px; font-size: 11px; }
-            .filter-box .count { font-size: 14px; margin-bottom: 2px; }
+            .summary-row { gap: 10px; margin-bottom: 14px; flex-wrap: nowrap; overflow-x: auto; padding: 8px 4px; }
+            .summary-box { flex: 1 1 0; min-width: auto; padding: 14px 6px; flex-direction: column; gap: 4px; }
+            .summary-box .icon { font-size: 18px; }
+            .summary-box .count { font-size: 24px; }
+            .summary-box .label { font-size: 11px; }
+            .filter-row { gap: 8px; margin-bottom: 14px; flex-wrap: nowrap; overflow-x: auto; padding: 8px 4px; }
+            .filter-box { flex: 0 0 auto; padding: 11px 16px; font-size: 12px; gap: 8px; }
+            .filter-box .count { font-size: 14px; }
+            .date-selector-row { flex-direction: column; align-items: stretch; gap: 10px; }
+            .date-selector-left { flex-wrap: wrap; gap: 10px; }
+            .date-selector-left > label { flex: 1 1 100%; font-size: 13px; margin-right: 0 !important; }
+            .date-selector-group { flex: 1 1 100%; }
+            .month-selector, .date-selector { flex: 1; width: 100%; font-size: 13px; padding: 11px 12px; }
+            .important-dates { flex: 1 1 calc(100% - 44px); order: 5; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
+            .imp-add { order: 6; width: 28px; height: 28px; font-size: 13px; }
+            .imp-chip { padding: 4px 10px; font-size: 11px; }
+            .imp-chip .imp-note { font-size: 10px; max-width: 90px; }
+            .date-selector-row > div:last-child { text-align: right; }
+            .refresh-btn { padding: 9px 14px; font-size: 12px; }
+            .mobile-add-section .add-btn { width: 100%; max-width: 340px; }
             .cards-grid { grid-template-columns: 1fr; }
             .card-box { font-size: 15px; }
             .card-header { padding: 14px 14px; }
@@ -239,8 +298,8 @@
             .card-tag { font-size: 12px; }
             .card-value, .card-note { font-size: 15px; }
             .card-date, .card-time, .card-phone { font-size: 15px; }
-            .card-advance, .card-table { font-size: 17px; }
-            .card-actions .edit-btn, .card-actions .delete-btn, .card-actions .view-btn { padding: 10px 16px; font-size: 15px; }
+            .card-advance, .card-table { font-size: 14px; }
+            .card-actions .edit-btn, .card-actions .delete-btn, .card-actions .view-btn { padding: 8px 12px; font-size: 12px; }
             .charts-row { flex-direction: column; flex-wrap: wrap; gap: 20px; margin-top: 24px; }
             .chart-container { min-width: 100%; max-width: 100%; width: 100%; height: auto; min-height: 300px; margin-bottom: 0; }
             th, td { font-size: 14px; padding: 11px 6px; white-space: nowrap; }
@@ -258,9 +317,13 @@
 </div>
 <div class="container">
     <div class="top-bar">
+        <div class="live-clock">
+            <div class="clock-time" id="clock-time">--:--:--</div>
+            <div class="clock-date" id="clock-date"></div>
+        </div>
         <div class="restaurant-title" id="restaurant-title">RAVINTOLA TANDOORI VILLA</div>
         <div class="top-actions">
-            <button class="add-btn desktop-add-btn" onclick="window.location.href='rese.html'"><i class="fa fa-plus"></i> Add New Reservation</button>
+            <button class="add-btn desktop-add-btn" onclick="window.location.href='reservation.html'"><i class="fa fa-plus"></i> Add New Reservation</button>
             <button class="notification-btn" id="notification-btn" title="Notifications"><i class="fas fa-bell"></i><span class="notification-badge" id="notification-badge">0</span></button>
             <button class="login-btn" onclick="window.location.href='profile.html'" title="Profile"><i class="fas fa-user"></i></button>
             <div class="notification-panel" id="notification-panel">
@@ -275,7 +338,7 @@
     </div>
 
     <div class="summary-row">
-        <div class="summary-box pending selected" data-status="pending">
+        <div class="summary-box pending" data-status="pending">
             <span class="icon"><i class="fas fa-hourglass-half"></i></span>
             <span class="count" id="pending-count">0</span>
             <span class="label">Pending</span>
@@ -326,6 +389,8 @@
                     <option value="">All Dates</option>
                 </select>
             </div>
+            <div class="important-dates" id="important-dates"></div>
+            <button class="imp-add" id="imp-add" title="Add important date"><i class="fa fa-plus"></i></button>
         </div>
         <div>
             <button id="refresh-btn" class="refresh-btn" title="Refresh page" aria-label="Refresh page"><i class="fa fa-sync-alt"></i> Refresh</button>
@@ -333,7 +398,27 @@
     </div>
 
     <div class="mobile-add-section">
-        <button class="add-btn mobile-add-btn" onclick="window.location.href='rese.html'"><i class="fa fa-plus"></i> Add New Reservation</button>
+        <button class="add-btn mobile-add-btn" onclick="window.location.href='reservation.html'"><i class="fa fa-plus"></i> Add New Reservation</button>
+    </div>
+
+    <div class="imp-modal" id="imp-modal">
+        <div class="imp-modal-box">
+            <h3>Add Important Date</h3>
+            <div class="imp-modal-row">
+                <div class="imp-field">
+                    <label for="imp-date-input">Date</label>
+                    <input type="date" id="imp-date-input">
+                </div>
+                <div class="imp-field">
+                    <label for="imp-note-input">Note (max 20)</label>
+                    <input type="text" id="imp-note-input" maxlength="20" placeholder="e.g. Offer ends">
+                </div>
+            </div>
+            <div class="imp-modal-btns">
+                <button class="imp-cancel" id="imp-cancel-btn">Cancel</button>
+                <button class="imp-save" id="imp-save-btn">Add</button>
+            </div>
+        </div>
     </div>
 
     <div class="table-container">
@@ -419,7 +504,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
    const firebaseConfig = {
     apiKey: "AIzaSyC3kEQ3laHKQP40VUPTUyHNnR4T3O6E7-E",
     authDomain: "deliverylog-3fe71.firebaseapp.com",
@@ -435,6 +520,18 @@
     const db = firebase.database();
 
     const restaurantTitle = document.getElementById('restaurant-title');
+
+    function updateLiveClock() {
+        const now = new Date();
+        const timeStr = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Helsinki', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
+        const dateStr = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Helsinki', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(now);
+        const timeEl = document.getElementById('clock-time');
+        const dateEl = document.getElementById('clock-date');
+        if(timeEl) timeEl.textContent = timeStr;
+        if(dateEl) dateEl.textContent = dateStr;
+    }
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
     if(restaurantTitle) {
         db.ref('settings/activeRestaurantName').on('value', snap => {
             restaurantTitle.textContent = snap.val() || 'RAVINTOLA TANDOORI VILLA';
@@ -589,6 +686,97 @@
     const notificationList = document.getElementById('notification-list');
     const notificationPagination = document.getElementById('notification-pagination');
     const markReadBtn = document.getElementById('mark-read-btn');
+
+    /* ---- Real-time notifications (Firebase) ---- */
+    const notificationsRef = db.ref('notifications');
+    notificationsRef.on('value', snap => {
+        const val = snap.val() || {};
+        notifications = Object.keys(val).map(k => Object.assign({_key: k}, val[k]))
+            .sort((a,b) => (b._ts||0) - (a._ts||0));
+        updateNotificationBadge();
+        renderNotifications();
+    });
+
+    function pushNotification(type, reservation) {
+        notificationsRef.push({ id: reservation.id, type: type, reservation: reservation, _seen: false, _ts: Date.now() });
+    }
+
+    function removeNotificationsFor(reservationId, type) {
+        notifications.filter(n => n.id === reservationId && n.type === type)
+            .forEach(n => notificationsRef.child(n._key).remove());
+    }
+
+    if(notificationBtn) {
+        notificationBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            notificationPanel.classList.toggle('open');
+        });
+    }
+    if(markReadBtn) {
+        markReadBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            notifications.filter(n => !n._seen).forEach(n => {
+                notificationsRef.child(n._key).update({_seen: true});
+            });
+        });
+    }
+
+    /* ---- Important dates (Firebase) ---- */
+    const impDatesRef = db.ref('importantDates');
+    let impDates = [];
+    const impDatesEl = document.getElementById('important-dates');
+    const impAddBtn = document.getElementById('imp-add');
+
+    impDatesRef.on('value', snap => {
+        const val = snap.val() || {};
+        impDates = Object.keys(val).map(k => Object.assign({_key: k}, val[k]));
+        renderImportantDates();
+    });
+
+    function formatImpDate(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        if(isNaN(d)) return dateStr;
+        const day = d.getDate();
+        const mon = d.toLocaleDateString('en-GB', { month: 'short' });
+        const wd = d.toLocaleDateString('en-GB', { weekday: 'short' });
+        return `${day} ${mon} (${wd})`;
+    }
+
+    function renderImportantDates() {
+        if(!impDatesEl) return;
+        impDatesEl.innerHTML = impDates.map(d =>
+            `<span class="imp-chip"><span class="imp-date">${formatImpDate(d.date)}</span><span class="imp-note">${escapeHtml(d.note||'')}</span><span class="imp-remove" data-key="${d._key}">&times;</span></span>`
+        ).join('');
+    }
+
+    const impModal = document.getElementById('imp-modal');
+    const impDateInput = document.getElementById('imp-date-input');
+    const impNoteInput = document.getElementById('imp-note-input');
+
+    if(impAddBtn) {
+        impAddBtn.addEventListener('click', function(){
+            if(impDates.length >= 4) { alert('Maximum 4 important dates.'); return; }
+            impDateInput.value = '';
+            impNoteInput.value = '';
+            impModal.classList.add('open');
+            impDateInput.focus();
+        });
+    }
+    document.getElementById('imp-cancel-btn').addEventListener('click', ()=> impModal.classList.remove('open'));
+    document.getElementById('imp-save-btn').addEventListener('click', function(){
+        const date = impDateInput.value;
+        const note = impNoteInput.value.trim().slice(0, 20);
+        if(!date) { impDateInput.focus(); return; }
+        impDatesRef.push({ date: date, note: note });
+        impModal.classList.remove('open');
+    });
+    impModal.addEventListener('click', function(e){ if(e.target === impModal) impModal.classList.remove('open'); });
+    if(impDatesEl) {
+        impDatesEl.addEventListener('click', function(e){
+            const rm = e.target.closest('.imp-remove');
+            if(rm) impDatesRef.child(rm.dataset.key).remove();
+        });
+    }
 
     function getDaysInMonth(year, monthIdx) {
         return new Date(year, monthIdx + 1, 0).getDate();
@@ -788,6 +976,7 @@
         }
         return `
             <span class="table-select-wrapper">
+                <span class="table-pill" data-id="${reservation.id}">${tableNumber ? 'Table ' + tableNumber : 'Table'}</span>
                 <select class="table-select" data-id="${reservation.id}">
                     ${options}
                 </select>
@@ -848,7 +1037,14 @@
             tableBody.appendChild(row);
         });
         if (cardsGrid) {
+            const DAY_COLORS = ['#00e5ff','#1a73e8','#00e676','#ffa726','#00bfa5','#ff5722','#18ffff','#2979ff','#64ffda','#26c6da'];
+            const dateColorMap = {};
+            let colorIdx = 0;
             cardsGrid.innerHTML = pageReservations.map(reservation => {
+                if(!(reservation.date in dateColorMap)) {
+                    dateColorMap[reservation.date] = DAY_COLORS[colorIdx++ % DAY_COLORS.length];
+                }
+                const dayColor = dateColorMap[reservation.date];
                 const name = reservation.user?.name || 'N/A';
                 const date = formatDateDisplay(reservation.date);
                 const dayName = reservation.date ? new Date(reservation.date).toLocaleDateString('en-US',{weekday:'long'}) : 'N/A';
@@ -860,47 +1056,32 @@
                 const tableSelect = renderTableSelect(reservation);
                 const statusSelect = renderStatusSelect(reservation);
                 return `
-                <div class="card-box ${getStatusClass(reservation._tableStatus)}">
+                <div class="card-box ${getStatusClass(reservation._tableStatus)}" style="--day-color:${dayColor}">
                     <div class="card-header">
                         <div class="card-title">
                             <div class="card-name">${name}</div>
-                            <div class="card-day">${dayName}</div>
+                            <div class="card-phone">${phone}</div>
                         </div>
-                        <div class="card-people">${people}<span>people</span></div>
+                        <div class="card-head-side">
+                            <div class="card-table">${tableSelect}</div>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="card-row">
-                            <span class="card-tag">Date</span>
-                            <span class="card-date">${date}</span>
+                        <div class="card-highlights">
+                            <div class="hl-item"><span class="hl-label">Date</span><span class="hl-value">${date}</span></div>
+                            <div class="hl-item"><span class="hl-label">Time</span><span class="hl-value">${time}</span></div>
+                            <div class="hl-item"><span class="hl-label">People</span><span class="hl-value">${people}</span></div>
                         </div>
-                        <div class="card-row">
-                            <span class="card-tag">Time</span>
-                            <span class="card-time">${time}</span>
-                        </div>
-                        <div class="card-row">
-                            <span class="card-tag">Phone</span>
-                            <span class="card-phone">${phone}</span>
-                        </div>
-                        <div class="card-row">
-                            <span class="card-tag">Status</span>
-                            <span class="card-status">${statusSelect}</span>
-                        </div>
-                        <div class="card-row">
-                            <span class="card-tag">Note</span>
-                            <span class="card-note">${note}</span>
-                        </div>
+                        <div class="card-note-box">${note}</div>
                         <div class="card-row">
                             <span class="card-tag">Advance</span>
                             <span class="card-advance">${advancePaid}</span>
-                        </div>
-                        <div class="card-row">
-                            <span class="card-tag"><i class="fas fa-table"></i> Table</span>
-                            <span class="card-table">${tableSelect}</span>
                         </div>
                         <div class="card-actions">
                             <button class="edit-btn" data-id="${reservation.id}"><i class="fa fa-edit"></i> Edit</button>
                             <button class="view-btn" data-id="${reservation.id}"><i class="fas fa-eye"></i> View</button>
                             <button class="delete-btn" data-id="${reservation.id}"><i class="fa fa-trash"></i> Delete</button>
+                            <span class="card-status">${statusSelect}</span>
                         </div>
                     </div>
                 </div>
@@ -1197,6 +1378,17 @@
         }
     });
 
+    document.addEventListener('click', function(e) {
+        const pill = e.target.closest('.table-pill');
+        if(pill) {
+            const w = pill.closest('.table-select-wrapper');
+            w.classList.add('editing');
+            const sel = w.querySelector('.table-select');
+            sel.focus();
+            sel.addEventListener('blur', function() { w.classList.remove('editing'); }, { once: true });
+        }
+    });
+
     summaryBoxes.forEach(box=>{
         box.addEventListener('click', ()=>{
             summaryBoxes.forEach(b=>b.classList.remove('selected'));
@@ -1268,6 +1460,59 @@
         });
     }
 
+    const alertedIds = new Set();
+
+    function parseReservationDateTime(r) {
+        if(!r.date || !r.time) return null;
+        const t = String(r.time).split('-')[0].trim();
+        const m = t.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+        if(!m) return null;
+        let h = parseInt(m[1], 10);
+        const min = parseInt(m[2], 10);
+        const ap = m[3] ? m[3].toUpperCase() : null;
+        if(ap === 'PM' && h < 12) h += 12;
+        if(ap === 'AM' && h === 12) h = 0;
+        const d = new Date(r.date);
+        if(isNaN(d)) return null;
+        d.setHours(h, min, 0, 0);
+        return d;
+    }
+
+    function playAlertSound() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if(!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.35, ctx.currentTime);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 2);
+            osc.onended = () => ctx.close();
+        } catch(e) {}
+    }
+
+    function checkReservationAlerts() {
+        const now = Date.now();
+        reservations.forEach(r => {
+            if(alertedIds.has(r.id)) return;
+            const t = parseReservationDateTime(r);
+            if(!t) return;
+            const diff = t.getTime() - now;
+            if(diff > 0 && diff <= 10 * 60 * 1000) {
+                alertedIds.add(r.id);
+                playAlertSound();
+            }
+        });
+    }
+
+    setInterval(checkReservationAlerts, 15000);
+    setTimeout(checkReservationAlerts, 2000);
+
     function softDeleteReservation(id) {
         const reservation = reservations.find(o=>o.id===id);
         if(!reservation) return Promise.reject('Reservation not found');
@@ -1281,9 +1526,7 @@
         if(!reservation) return Promise.resolve();
         if(confirm('Are you sure you want to delete this reservation?')) {
             return softDeleteReservation(id).then(() => {
-                notifications.unshift({ id: reservation.id, type: 'deleted', reservation: reservation, _seen: false });
-                updateNotificationBadge();
-                renderNotifications();
+                pushNotification('deleted', reservation);
             }).catch(()=> alert('Failed to delete. Please try again.'));
         }
         return Promise.resolve();
@@ -1298,17 +1541,13 @@
             return db.ref('reservations/'+id).set(recovered).then(() => {
                 return db.ref('deletedReservations/'+id).remove();
             }).then(() => {
-                notifications = notifications.filter(n => !(n.id === id && n.type === 'deleted'));
-                updateNotificationBadge();
-                renderNotifications();
+                removeNotificationsFor(id, 'deleted');
             }).catch(()=> alert('Failed to recover. Please try again.'));
         });
     }
 
     function dismissNotification(id, type) {
-        notifications = notifications.filter(n => !(n.id === id && n.type === type));
-        updateNotificationBadge();
-        renderNotifications();
+        removeNotificationsFor(id, type);
     }
 
     function processNotifications() {
@@ -1317,21 +1556,15 @@
             lastCheck = Date.now();
             localStorage.setItem(NOTIFICATION_CHECK_KEY, String(lastCheck));
         }
-        let changed = false;
         reservations.forEach(r => {
             if(!knownReservationIds.has(r.id)) {
                 knownReservationIds.add(r.id);
                 const created = r.createdAt ? new Date(r.createdAt).getTime() : 0;
                 if(created > lastCheck) {
-                    notifications.unshift({ id: r.id, type: 'new', reservation: r, _seen: false });
-                    changed = true;
+                    pushNotification('new', r);
                 }
             }
         });
-        if(changed) {
-            updateNotificationBadge();
-            renderNotifications();
-        }
     }
 
     function updateNotificationBadge() {
@@ -1410,26 +1643,6 @@
         renderNotificationPagination();
     }
 
-    function markNotificationsRead() {
-        notifications.forEach(n => n._seen = true);
-        localStorage.setItem(NOTIFICATION_CHECK_KEY, String(Date.now()));
-        updateNotificationBadge();
-        renderNotifications();
-    }
-
-    notificationBtn.addEventListener('click', ()=> {
-        const isOpen = notificationPanel.classList.contains('open');
-        if(!isOpen) {
-            notificationPanel.classList.add('open');
-            markNotificationsRead();
-        } else {
-            notificationPanel.classList.remove('open');
-        }
-    });
-    markReadBtn.addEventListener('click', (e)=> {
-        e.stopPropagation();
-        markNotificationsRead();
-    });
     notificationList.addEventListener('click', function(e){
         if(e.target.classList.contains('notification-view')) {
             e.stopPropagation();
